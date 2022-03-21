@@ -16,7 +16,7 @@ async function requesterId(req, res, next) {
   //passport.authenticate returns a function that (req, res, next is immediately calling)
   await passport.authenticate("jwt", (err, user, info) => {
       if(err || !user){
-        req.user.id = null
+        req.user = {id: null}
         return next()
       }
       req.user = user;

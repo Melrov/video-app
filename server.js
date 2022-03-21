@@ -3,8 +3,11 @@ const express = require("express");
 const cookieparser = require("cookie-parser");
 const passport = require("./server/config/passport.config");
 
-const userRoute = require("./server/routes/user.routes")
-const videoRoute = require("./server/routes/video.routes")
+const fileUpload = require('express-fileupload');
+
+const userRouter = require("./server/routes/user.routes")
+const videoRouter = require("./server/routes/video.routes")
+const uploadRouter = require("./server/routes/upload.routes")
 
 const app = express();
 const SERVER_PORT = process.env.PORT || 8080;
@@ -13,9 +16,17 @@ app.use(express.json());
 app.use(express.static(__dirname + "/build"));
 app.use(cookieparser());
 app.use(passport.initialize());
+// Todo maybe change it to use temp file instead of memory
+// app.use(fileUpload({
+//   useTempFiles : true,
+//   tempFileDir : __dirname + '/tmp/'
+// }));
+app.use(fileUpload());
 
-app.use("/api/user", userRoute)
-app.use("/api/video", videoRoute)
+app.use("/api/user", userRouter)
+app.use("/api/video", videoRouter)
+//app.use("/api/upload", uploadRouter)
+
 
 app.get("*", (req, res) => {
   return res.sendFile("/build/index.html", { root: __dirname + "/" });

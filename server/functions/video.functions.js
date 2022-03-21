@@ -6,7 +6,7 @@
  */
 function filterUserVideos(videos, requesterId){
     let filterVideos = [...videos]
-    for(let i = 0; i < videos.length(); i++){
+    for(let i = 0; i < filterVideos.length; i++){
         if(filterVideos[i].visibility !== "public" && filterVideos[i].uploader_id !== requesterId){
             filterVideos = [...filterVideos.splice(0, i), ...filterVideos.splice(i+1)]
             i--
