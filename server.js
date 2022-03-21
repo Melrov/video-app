@@ -3,7 +3,8 @@ const express = require("express");
 const cookieparser = require("cookie-parser");
 const passport = require("./server/config/passport.config");
 
-//route imports
+const userRoute = require("./server/routes/user.routes")
+const videoRoute = require("./server/routes/video.routes")
 
 const app = express();
 const SERVER_PORT = process.env.PORT || 8080;
@@ -13,7 +14,8 @@ app.use(express.static(__dirname + "/build"));
 app.use(cookieparser());
 app.use(passport.initialize());
 
-//use routes
+app.use("/api/user", userRoute)
+app.use("/api/video", videoRoute)
 
 app.get("*", (req, res) => {
   return res.sendFile("/build/index.html", { root: __dirname + "/" });
