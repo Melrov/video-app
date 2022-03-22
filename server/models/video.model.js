@@ -42,6 +42,20 @@ async function createVideo(res, files, video) {
       uuid = uuidv4();
     } while (!checkUuidAvailability(uuid));
     // todo save file here with the uuid and if it is series put - 1 or - 2 for maybe not figure it out
+    if(video.type === 'series'){
+      sampleFile = req.files.sampleFile;
+    uploadPath = __dirname + '/upload/' + sampleFile.name;
+  
+    // Use the mv() method to place the file somewhere on your server
+    sampleFile.mv(uploadPath, function(err) {
+      if (err)
+        return res.status(500).send(err);
+  
+      res.send('File uploaded!');
+    });
+    } else {
+
+    }
     const { insertId: videoId } = await query("INSERT INTO video (location) VALUES (?)", ["/aefe/ef.mp4"]);
     if (video.type === "series") {
     } else {
@@ -87,4 +101,34 @@ async function deleteVideo(res, contentId, requesterId) {
   }
 }
 
-module.exports = { videoById, createVideo, deleteVideo };
+async function editVideoInfo(res, contendId, video, requesterId) {
+  try {
+    const [content] = await query("SELECT uploader_id FROM content WHERE content.id = ?");
+    if (!content || content.uploader_id !== requesterId) {
+      return res.send({ success: false, data: null, error: "You don't have permission to edit this video" });
+    }
+    await query("UPDATE content SET ? WHERE content.id = ?", [video, contendId]);
+    return res.send({ success: true, data: null, error: null });
+  } catch (error) {
+    return res.send({ success: false, data: null, error: "Something went wrong please try again." });
+  }
+}
+
+async function editEpisodeInfo(res, contendId, episode, requesterId) {
+  try {
+    const [content] = await query("SELECT * FROM content WHERE content.id = ?", [contendId]);
+    if (!content || content.uploader_id !== requesterId) {
+      return res.send({ success: false, data: null, error: "You don't have permission to edit this video" });
+    }
+    await query("UPDATE series_episode SET ? WHERE series_episode.episode_number = ? AND series_episode.content_id = ?", [
+      episode,
+      episode.episode_number,
+      contendId,
+    ]);
+    return res.send({ success: true, data: null, error: null });
+  } catch (error) {
+    return res.send({ success: false, data: null, error: "Something went wrong please try again." });
+  }
+}
+
+module.exports = { videoById, createVideo, deleteVideo, editVideoInfo, editEpisodeInfo };

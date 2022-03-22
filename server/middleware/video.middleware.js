@@ -27,6 +27,23 @@ async function uploadCheck(req, res, next) {
   if (!req.files || Object.keys(req.files).length === 0) {
     return res.send({ success: false, data: null, error: "No files were uploaded" });
   }
+  if(!req.files.sampleFile){
+    return res.send({ success: false, data: null, error: "Invalid file input" });
+  }
+  if (!req.user.id) {
+    return res.send({ success: false, data: null, error: "Please Sign in first" });
+  }
+  if (!b.type || !b.title || !b.description || !b.visibility) {
+    return res.send({ success: false, data: null, error: "Invalid data provided" });
+  }
+  if (b.type === "movie" || b.type === "series" || b.type === "video") {
+    return next();
+  }
+  return res.send({ success: false, data: null, error: "Invalid data provided." });
+}
+
+function editInputCheck(req, res, next) {
+  const b = req.body;
   if (!req.user.id) {
     return res.send({ success: false, data: null, error: "Please Sign in first" });
   }
@@ -42,4 +59,5 @@ async function uploadCheck(req, res, next) {
 module.exports = {
   videoVisibilityCheck,
   uploadCheck,
+  editInputCheck,
 };
