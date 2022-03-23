@@ -1,7 +1,7 @@
 const express = require("express");
 const { authenticate, requesterId } = require("../middleware/authenticate.middleware");
 const { videoVisibilityCheck, uploadCheck, editInputCheck } = require("../middleware/video.middleware");
-const { videoById, createVideo, deleteVideo, editVideoInfo, editEpisodeInfo, steamVideo } = require("../models/video.model");
+const { videoById, createVideo, deleteVideo, editVideoInfo, editEpisodeInfo, streamVideo, streamSeries, seriesEpisodeCreate } = require("../models/video.model");
 const router = express.Router();
 
 router.get("/:contentId", [requesterId, videoVisibilityCheck], (req, res) => {
@@ -17,7 +17,18 @@ router.put("/create", [authenticate, uploadCheck], (req, res) => {
     visibility: req.body.visibility,
     uploader_id: req.user.id,
   };
-  createVideo(res, req.files, video);
+  createVideo(res, req.files.sampleFile, video);
+});
+
+router.put("/create/:contentId", [authenticate], (req, res) => {
+  if(!req.body.title || !req.body.description){
+    return res.send({success: false, data: null, error: "Invalid data provided"})
+  }
+  let episode = {
+    title: req.body.title,
+    description: req.body.description,
+  };
+  seriesEpisodeCreate(res, req.files.sampleFile, req.params.contentId, episode, req.user.id );
 });
 
 router.delete("/delete", [authenticate], (req, res) => {
@@ -52,7 +63,11 @@ router.patch("/editEpisodeInfo", [authenticate, editInputCheck], (req, res) => {
 })
 
 router.get("/stream/:contentId", [], (req, res) => {
-  steamVideo(res, req.params.contentId)
+  streamVideo(res, req.params.contentId)
+})
+
+router.get("/stream/:contentId/:episodeNum", [], (req, res) => {
+  streamSeries(res, req.params.contentId, req.params.episodeNum)
 })
 
 module.exports = router;

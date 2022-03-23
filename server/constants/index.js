@@ -1,5 +1,5 @@
-const VIDEO_FILE_PATH = './server/assets/';
+const VIDEO_FOLDER_PATH = './server/assets/';
 
 module.exports = {
-    VIDEO_FILE_PATH,
+    VIDEO_FOLDER_PATH,
 }
