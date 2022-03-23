@@ -1,6 +1,9 @@
 const query = require("../config/mysql.config");
 const { checkUuidAvailability } = require("../functions/uuid.functions");
+const path = require("path");
 const { v4: uuidv4 } = require("uuid");
+const { VIDEO_FILE_PATH } = require("../constants");
+const fs = require("fs");
 
 async function videoById(res, contentId) {
   try {
@@ -42,19 +45,17 @@ async function createVideo(res, files, video) {
       uuid = uuidv4();
     } while (!checkUuidAvailability(uuid));
     // todo save file here with the uuid and if it is series put - 1 or - 2 for maybe not figure it out
-    if(video.type === 'series'){
+    if (video.type === "series") {
       sampleFile = req.files.sampleFile;
-    uploadPath = __dirname + '/upload/' + sampleFile.name;
-  
-    // Use the mv() method to place the file somewhere on your server
-    sampleFile.mv(uploadPath, function(err) {
-      if (err)
-        return res.status(500).send(err);
-  
-      res.send('File uploaded!');
-    });
-    } else {
+      uploadPath = __dirname + "/upload/" + sampleFile.name;
 
+      // Use the mv() method to place the file somewhere on your server
+      sampleFile.mv(uploadPath, function (err) {
+        if (err) return res.status(500).send(err);
+
+        res.send("File uploaded!");
+      });
+    } else {
     }
     const { insertId: videoId } = await query("INSERT INTO video (location) VALUES (?)", ["/aefe/ef.mp4"]);
     if (video.type === "series") {
@@ -120,15 +121,30 @@ async function editEpisodeInfo(res, contendId, episode, requesterId) {
     if (!content || content.uploader_id !== requesterId) {
       return res.send({ success: false, data: null, error: "You don't have permission to edit this video" });
     }
-    await query("UPDATE series_episode SET ? WHERE series_episode.episode_number = ? AND series_episode.content_id = ?", [
-      episode,
-      episode.episode_number,
-      contendId,
-    ]);
+    await query(
+      "UPDATE series_episode SET ? WHERE series_episode.episode_number = ? AND series_episode.content_id = ?",
+      [episode, episode.episode_number, contendId]
+    );
     return res.send({ success: true, data: null, error: null });
   } catch (error) {
     return res.send({ success: false, data: null, error: "Something went wrong please try again." });
   }
 }
 
-module.exports = { videoById, createVideo, deleteVideo, editVideoInfo, editEpisodeInfo };
+async function steamVideo(res, contentId) {
+  const [content] = await query("SELECT * FROM content WHERE content.id = ?", [contentId]);
+  if (!content) {
+    return res.send({ success: false, data: null, error: "Video not found" });
+  }
+  if (content.type === "series") {
+    return res.redirect(`/${contentId}/1`);
+  }
+  const resolvedPath = path.resolve(VIDEO_FILE_PATH + contentId + ".mp4");
+  if (fs.existsSync(resolvedPath)) {
+    return res.sendFile(resolvedPath);
+  } else {
+    return res.send({ success: false, data: null, error: "No video found" });
+  }
+}
+
+module.exports = { videoById, createVideo, deleteVideo, editVideoInfo, editEpisodeInfo, steamVideo };

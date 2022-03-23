@@ -1,7 +1,7 @@
 const express = require("express");
 const { authenticate, requesterId } = require("../middleware/authenticate.middleware");
 const { videoVisibilityCheck, uploadCheck, editInputCheck } = require("../middleware/video.middleware");
-const { videoById, createVideo, deleteVideo, editVideoInfo, editEpisodeInfo } = require("../models/video.model");
+const { videoById, createVideo, deleteVideo, editVideoInfo, editEpisodeInfo, steamVideo } = require("../models/video.model");
 const router = express.Router();
 
 router.get("/:contentId", [requesterId, videoVisibilityCheck], (req, res) => {
@@ -49,6 +49,10 @@ router.patch("/editEpisodeInfo", [authenticate, editInputCheck], (req, res) => {
     episode_number: req.body.episode,
   };
   editEpisodeInfo(res, req.body.contentId, episode, req.user.id)
+})
+
+router.get("/stream/:contentId", [], (req, res) => {
+  steamVideo(res, req.params.contentId)
 })
 
 module.exports = router;
