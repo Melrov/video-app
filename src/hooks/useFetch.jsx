@@ -92,7 +92,7 @@ function useFetch() {
    */
   const videoInfo = useCallback(
     async (contentId) => {
-      return await makeAPICall(`/api/video/${contendId}`, {
+      return await makeAPICall(`/api/video/${contentId}`, {
         method: "get",
       });
     },
