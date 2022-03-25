@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import useFetch from "../hooks/useFetch";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 const Con = styled.div`
   display: flex;
@@ -104,7 +106,7 @@ function SignupPage() {
           navigate("/login");
         } else {
           setShowError(true);
-          setError(res.error);
+          setFormError(res.error);
         }
       }
     },
@@ -123,7 +125,7 @@ function SignupPage() {
             label="Username"
             value={username}
             helperText={showError ? uError : ""}
-            onChange={(e) => setUserName(e.target.value)}
+            onChange={(e) => setUsername(e.target.value)}
           />
         </InputCon>
         <InputCon>

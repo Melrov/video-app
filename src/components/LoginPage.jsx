@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../context/userContext";
+import { UserContext } from "../context/UserContext";
 import useFetch from "../hooks/useFetch";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
@@ -89,14 +89,6 @@ function LoginPage() {
     }
   }, [password]);
 
-  useEffect(() => {
-    if (password !== repeatPassword) {
-      setRpError("Password does not match");
-    } else {
-      setRpError(null);
-    }
-  }, [password, repeatPassword]);
-
   const login = useCallback(
     async (e) => {
       e.preventDefault();
@@ -127,7 +119,7 @@ function LoginPage() {
             label="Username"
             value={username}
             helperText={showError ? uError : ""}
-            onChange={(e) => setUserName(e.target.value)}
+            onChange={(e) => setUsername(e.target.value)}
           />
         </InputCon>
         <InputCon>
