@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useCallback } from "react";
 
-function useServerFetch() {
+function useFetch() {
   const makeAPICall = useCallback(async (url, config) => {
     try {
       return (await axios(url, config)).data;
@@ -13,4 +13,4 @@ function useServerFetch() {
   return {};
 }
 
-export default useServerFetch;
+export default useFetch;
