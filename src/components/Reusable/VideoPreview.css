@@ -1,0 +1,36 @@
+.container-row {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.container-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.img {
+  width: 100%;
+}
+
+.tooltip {
+  position: absolute;
+  color: white;
+  bottom: 4px;
+  right: 4px;
+  font-size: 11px;
+  background: rgb(0 0 0 / 50%);
+  border-radius: 7px;
+  padding: 1px 6px 1px 6px;
+}
+
+.thumbnail-con {
+  position: relative;
+  max-height: 65px;
+  width: 50%;
+}
+
+.info-con {
+    width: 50%;
+    font-size: 14px;
+}
+
