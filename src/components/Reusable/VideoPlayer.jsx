@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import "./VideoPlayer.css";
 import useVideoPlayer from "../../hooks/useVideoPlayer";
 import styled from "styled-components";
@@ -44,13 +44,24 @@ const InputContainer = styled.div`
   }
 `;
 
-const VideoPlayer = ({ url }) => {
+const Video = styled.video`
+  width: 100%;
+  height: 99%;
+  background-color: black;
+`;
+
+const Controls = styled.div`
+  display: ${props => props.hidden ? 'none' : 'block'};
+`
+
+const VideoPlayer = ({ videoId }) => {
   const videoElement = useRef(null);
   const inputRef = useRef();
   const playBtn = useRef();
   const timeRef = useRef();
   const controlsRef = useRef();
   const volumeBtnRef = useRef();
+  const fullscreen = useRef()
   const {
     playerState,
     togglePlay,
@@ -63,12 +74,20 @@ const VideoPlayer = ({ url }) => {
     forward,
     ended,
     volumeChange,
-  } = useVideoPlayer(videoElement, inputRef, playBtn, timeRef, controlsRef, volumeBtnRef);
+    fullscreenClick,
+    reset,
+  } = useVideoPlayer(videoElement, inputRef, playBtn, timeRef, controlsRef, volumeBtnRef, fullscreen);
+
+  useEffect(() => {
+    reset()
+    playBtn.current.innerText = 'play_arrow'
+    inputRef.current.value = 0;
+  }, [reset, videoId])
 
   return (
     <div className="video-wrapper">
-      <video
-        src={url}
+      <Video
+        src={`/api/video/stream/${videoId}`}
         ref={videoElement}
         onTimeUpdate={handleOnTimeUpdate}
         onLoadedData={loadedData}
@@ -80,7 +99,7 @@ const VideoPlayer = ({ url }) => {
       <div className="progressAreaTime" ref={timeRef}>
         0:00
       </div>
-      <div className="controls" ref={controlsRef}>
+      <Controls className="controls" ref={controlsRef} hidden={playerState.superHidden}>
         <InputContainer>
           <Input
             type="range"
@@ -97,8 +116,8 @@ const VideoPlayer = ({ url }) => {
         </InputContainer>
         <div className="actions">
           <div className="actions-left">
-            <button class="icon">
-              <i class="material-icons fast-rewind" onClick={rewind}>
+            <button className="icon">
+              <i className="material-icons fast-rewind" onClick={rewind}>
                 replay_10
               </i>
             </button>
@@ -107,8 +126,8 @@ const VideoPlayer = ({ url }) => {
                 play_arrow
               </i>
             </button>
-            <button class="icon">
-              <i class="material-icons fast-forward" onClick={forward}>
+            <button className="icon">
+              <i className="material-icons fast-forward" onClick={forward}>
                 forward_10
               </i>
             </button>
@@ -117,11 +136,18 @@ const VideoPlayer = ({ url }) => {
                 {playerState.current} / {playerState.duration}
               </span>
             </div>
-            <button class="icon volume_box">
-              <i class="material-icons volume" ref={volumeBtnRef} onClick={toggleMute}>
+            <button className="icon volume_box">
+              <i className="material-icons volume" ref={volumeBtnRef} onClick={toggleMute}>
                 volume_up
               </i>
-              <input type="range" min="0" max="100" class="volume_range" value={playerState.volume} onChange={volumeChange} />
+              <input
+                type="range"
+                min="0"
+                max="100"
+                className="volume_range"
+                value={playerState.volume}
+                onChange={volumeChange}
+              />
             </button>
           </div>
           <div className="actions-right">
@@ -131,9 +157,14 @@ const VideoPlayer = ({ url }) => {
               <option value="1.25">1.25x</option>
               <option value="2">2x</option>
             </select>
+            <button className="icon">
+                <i className="material-icons fullscreen" ref={fullscreen} onClick={fullscreenClick}>
+                  fullscreen
+                </i>
+              </button>
           </div>
         </div>
-      </div>
+      </Controls>
     </div>
   );
 };

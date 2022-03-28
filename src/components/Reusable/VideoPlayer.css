@@ -18,6 +18,7 @@ video {
   justify-content: center;
   overflow: hidden;
   display: inline-block;
+  height: 70%;
 }
 
 .paused {
@@ -171,4 +172,8 @@ video {
   opacity: 1;
   pointer-events: auto;
   transition: 0.5s;
+}
+
+.hidden {
+  display: none;
 }
