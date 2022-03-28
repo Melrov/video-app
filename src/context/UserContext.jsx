@@ -7,11 +7,11 @@ function UserProvider({ children }) {
 
   const setLoggedInUser = useCallback((user) => {
     setUser(user);
-  });
+  }, []);
 
   const clearLoggedInUser = useCallback(() => {
     setUser(null);
-  });
+  }, []);
 
   return <UserContext.Provider value={{ user, setLoggedInUser, clearLoggedInUser }}>{children}</UserContext.Provider>;
 }
