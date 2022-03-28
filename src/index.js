@@ -4,11 +4,14 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import UserProvider from "./context/UserContext";
+import VideosProvider from "./context/VideosContext";
 
 ReactDOM.render(
   <React.StrictMode>
     <UserProvider>
-      <App />
+      <VideosProvider>
+        <App />
+      </VideosProvider>
     </UserProvider>
   </React.StrictMode>,
   document.getElementById("root")
