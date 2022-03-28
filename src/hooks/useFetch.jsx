@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useCallback } from "react";
+import FormData from "form-data";
 
 function useFetch() {
   const makeAPICall = useCallback(async (url, config) => {
@@ -20,7 +21,7 @@ function useFetch() {
    */
   const login = useCallback(
     async (username, password) => {
-      return await makeAPICall("/api/users/login", {
+      return await makeAPICall("/api/user/login", {
         method: "post",
         data: {
           username,
@@ -39,7 +40,7 @@ function useFetch() {
    */
   const signup = useCallback(
     async (username, password) => {
-      return await makeAPICall("/api/users/signup", {
+      return await makeAPICall("/api/user/signup", {
         method: "put",
         data: {
           username,
@@ -55,7 +56,7 @@ function useFetch() {
    * @returns success, data( null ), error
    */
   const logout = useCallback(async () => {
-    return await makeAPICall("/api/users/logout", {
+    return await makeAPICall("/api/user/logout", {
       method: "get",
     });
   }, [makeAPICall]);
@@ -65,8 +66,8 @@ function useFetch() {
    * @returns success, data, error
    */
   const verify = useCallback(async () => {
-    return await makeAPICall("/api/users/verify", {
-      method: "get",
+    return await makeAPICall("/api/user/verify", {
+      method: "post",
     });
   }, [makeAPICall]);
 
@@ -76,7 +77,7 @@ function useFetch() {
    */
   const userInfo = useCallback(
     async (userId) => {
-      return await makeAPICall(`/api/users/${userId}`, {
+      return await makeAPICall(`/api/user/${userId}`, {
         method: "get",
       });
     },
@@ -84,6 +85,15 @@ function useFetch() {
   );
 
   // ----- video routes -----
+
+  /**
+   * gets list of videos for home page
+   */
+  const homeVideos = useCallback(async () => {
+    return await makeAPICall("/api/video/home", {
+      method: "get",
+    });
+  }, [makeAPICall]);
 
   /**
    * get video info
@@ -109,19 +119,20 @@ function useFetch() {
    * @returns success, data{ uuid }, error
    */
   const createVideo = useCallback(
-    async (title, description, type, visibility, videoFile) => {
+    async (title, description, type, visibility, videoFile, thumbnailFile) => {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("type", type);
+      formData.append("visibility", visibility);
+      formData.append("videoFile", videoFile);
+      formData.append("thumbnail", thumbnailFile)
       return await makeAPICall("/api/video/create", {
         method: "put",
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        formData: {
-          title,
-          description,
-          type,
-          visibility,
-          video: videoFile,
-        },
+        data: formData,
       });
     },
     [makeAPICall]
@@ -140,7 +151,7 @@ function useFetch() {
       return await makeAPICall(`/api/video/create/${contentId}`, {
         method: "put",
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "multipart/form-data; boundary=<calculated when request is sent>",
         },
         formData: {
           title,
@@ -233,6 +244,7 @@ function useFetch() {
     deleteVideo,
     editVideoInfo,
     editEpisodeInfo,
+    homeVideos,
   };
 }
 
