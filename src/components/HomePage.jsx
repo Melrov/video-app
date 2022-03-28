@@ -1,9 +1,49 @@
-import React from 'react'
+import React, { useContext, useEffect, useState } from "react";
+import useFetch from "../hooks/useFetch";
+import VideoPreview from "./Reusable/VideoPreview";
+import styled from "styled-components";
+import { VideosContext } from "../context/VideosContext";
+import { UserContext } from "../context/UserContext";
+
+const VideosCon = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 10px;
+`;
 
 function HomePage() {
+  const {videos, error, refresh} = useContext(VideosContext)
+  const { user } = useContext(UserContext)
+
+  useEffect(() => {
+    refresh()
+  }, [refresh, user]);
+
   return (
-    <div>HomePage</div>
-  )
+    <div>
+      {error && <span>{error}</span>}
+      {videos && (
+        <VideosCon>
+          {videos.map((video) => {
+            return (
+              <VideoPreview
+                key={video.id}
+                uuid={video.id}
+                thumbnail={"/thumbnail.png"}
+                tooltip={video.duration}
+                title={video.title}
+                username={video.username}
+                views={video.views}
+                uploadDate={video.uploadDate}
+                version="home"
+              />
+            );
+          })}
+        </VideosCon>
+      )}
+    </div>
+  );
 }
 
-export default HomePage
+export default HomePage;
