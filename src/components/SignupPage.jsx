@@ -68,9 +68,9 @@ function SignupPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!username.length >= 2) {
+    if (username.length < 2) {
       setUError("Username must be at least 2 characters");
-    } else if (!username.length <= 25) {
+    } else if (username.length > 25) {
       setUError("Username must be at max 25 characters");
     } else {
       setUError(null);
@@ -78,9 +78,9 @@ function SignupPage() {
   }, [username]);
 
   useEffect(() => {
-    if (!password.length >= 4) {
+    if (password.length < 4) {
       setPError("Password must be at least 4 characters");
-    } else if (!password.length <= 64) {
+    } else if (password.length > 64) {
       setPError("Password must be at max 64 characters");
     } else {
       setPError(null);
