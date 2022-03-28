@@ -104,7 +104,7 @@ function LoginPage() {
         }
       }
     },
-    [username, password, uError, pError]
+    [username, password, uError, pError, apiLogin, navigate, setLoggedInUser]
   );
 
   return (

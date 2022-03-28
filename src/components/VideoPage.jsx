@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import VideoPlayer from "./Reusable/VideoPlayer";
-import video from "../video.mp4";
 import VideoPreview from "./Reusable/VideoPreview";
 import styled from "styled-components";
 import VideoInfo from "./VideoInfo";
@@ -13,14 +12,14 @@ const Container = styled.div`
   justify-content: center;
 `;
 
-const Left_Container = styled.div`
+const LeftContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 975px;
   margin-right: 30px;
 `;
 
-const Right_Container = styled.div`
+const RightContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 300px;
@@ -33,20 +32,24 @@ function VideoPage() {
   const [error, setError] = useState(null);
   const [homeData, setHomeData] = useState(null);
 
-  useEffect(async () => {
-    if (contentId) {
-      const res = await videoInfo(contentId);
-      if (res.success) {
-        setData(res.data);
-      } else {
-        setData(null);
-        setError(res.error);
+  useEffect(() => {
+    async function init(){
+      if (contentId) {
+        const res = await videoInfo(contentId);
+        if (res.success) {
+          setData(res.data);
+        } else {
+          setData(null);
+          setError(res.error);
+        }
       }
     }
+    init()
   }, [contentId, videoInfo]);
 
-  useEffect(async () => {
-    const res = await homeVideos(contentId);
+  useEffect(() => {
+    async function init(){
+      const res = await homeVideos(contentId);
     if (res.success) {
       let a = res.data.filter((video) => {
         if (video.id !== contentId) {
@@ -58,14 +61,16 @@ function VideoPage() {
     } else {
       setHomeData(null);
     }
-  }, [contentId, videoInfo]);
+    }
+    init()
+  }, [contentId, videoInfo, homeVideos]);
 
   return (
     <Container>
       {error && <span>{error}</span>}
       {data && (
         <>
-          <Left_Container>
+          <LeftContainer>
             <VideoPlayer videoId={contentId} />
             <VideoInfo
               title={data.title}
@@ -77,8 +82,8 @@ function VideoPage() {
               dislikes={data.dislikes}
               description={data.description}
             />
-          </Left_Container>
-          <Right_Container>
+          </LeftContainer>
+          <RightContainer>
             {homeData && (
               <>
                 {homeData.map((video) => {
@@ -97,7 +102,7 @@ function VideoPage() {
                 })}
               </>
             )}
-          </Right_Container>
+          </RightContainer>
         </>
       )}
     </Container>

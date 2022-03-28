@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useFetch from "../hooks/useFetch";
 
@@ -24,6 +24,7 @@ function UploadVideoPage() {
   }, [createVideo, navigate, title, description, type, visibility, videoFile, thumbnailFile])
   return (
     <div>
+      {error && <span>{error}</span>}
       <form onSubmit={(e) => submit(e)}>
         <label htmlFor="title">Title</label>
         <input type="text" name="title" onChange={(e) => setTitle(e.target.value)}></input>

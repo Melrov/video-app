@@ -24,10 +24,6 @@ const InputCon = styled.div`
   margin-bottom: 15px;
   height: 75px;
 `;
-const CheckBoxCon = styled.div`
-  position: relative;
-  top: -13px;
-`;
 const Header = styled.h2`
   margin-left: auto;
   margin-right: auto;
@@ -64,7 +60,6 @@ function SignupPage() {
   const [rpError, setRpError] = useState(null);
   const [formError, setFormError] = useState(null)
   const [showError, setShowError] = useState(false);
-  const [showRpError, setShowRpError] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,7 +105,7 @@ function SignupPage() {
         }
       }
     },
-    [username, password, uError, pError, rpError]
+    [username, password, uError, pError, rpError, apiSignup, navigate]
   );
 
   return (

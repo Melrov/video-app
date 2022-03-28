@@ -7,7 +7,7 @@ function VideoPreview({ uuid, tooltip, title, username, views, uploadDate, versi
   return (
     <div className={`container-${version === "home" ? "home" : "row"}`} onClick={() => {navigate(`/video/${uuid}`)}} title={title}>
       <div className="thumbnail-con">
-        <img className="img" src={`/api/video/thumbnail/${uuid}`} />
+        <img className="img" src={`/api/video/thumbnail/${uuid}`} alt={title}/>
         <div className="tooltip">{tooltip}</div>
       </div>
       <div className="info-con">
