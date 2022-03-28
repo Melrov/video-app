@@ -5,13 +5,14 @@
  * @returns filtered list with only public videos unless the requester is the uploader
  */
 function filterUserVideos(videos, requesterId){
-    let filterVideos = [...videos]
-    for(let i = 0; i < filterVideos.length; i++){
-        if(filterVideos[i].visibility !== "public" && filterVideos[i].uploader_id !== requesterId){
-            filterVideos = [...filterVideos.splice(0, i), ...filterVideos.splice(i+1)]
-            i--
+    let filterVideos = []
+    for(let i = 0; i < videos.length; i++){
+            if(videos[i].visibility === "public"){
+                filterVideos.push(videos[i])
+            } else if ( videos[i].uploaderId === requesterId) {
+                filterVideos.push(videos[i])
+            }
         }
-    }
     return filterVideos
 }
 

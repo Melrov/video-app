@@ -21,7 +21,7 @@ router.put("/signup", [validateInput], (req, res) => {
   signup(res, req.body.username, req.body.password);
 });
 
-router.get("/:userId", requesterId, (req, res) => {
+router.get("/:userId", [requesterId], (req, res) => {
   videosByUserId(res, req.params.userId, req.user.id);
 });
 

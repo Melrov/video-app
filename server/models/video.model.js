@@ -4,6 +4,7 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const { VIDEO_FOLDER_PATH } = require("../constants");
 const fs = require("fs");
+const { filterUserVideos } = require("../functions/video.functions");
 
 async function videoById(res, contentId) {
   try {
@@ -14,6 +15,7 @@ async function videoById(res, contentId) {
     if (!video) {
       return res.send({ success: true, data: null, error: "Video not found" });
     }
+    await query("UPDATE content SET `views`=? WHERE content.id = ?", [video.views + 1, contentId])
     if (video.type === "series") {
       const episodes = await query(
         `SELECT se.title, se.description, se.episode_number, video.location,
@@ -23,11 +25,11 @@ async function videoById(res, contentId) {
       );
       return res.send({ success: true, data: Object.assign(video, { episodes }), error: null });
     } else {
-      const video = await query(
+      const [video] = await query(
         `SELECT content.id, content.type, content.title, content.description,content.tags,
-         content.upload_date, content.views, content.likes, content.dislikes, content.uploader_id,
-         content.visibility, video.location, video.intro, video.outro, video.recap, video.next_preview
-         FROM content JOIN video ON content.video_id = video.id WHERE content.id = ?`,
+         content.upload_date AS uploadDate, content.views, content.likes, content.dislikes, content.uploader_id AS uploaderId,
+         content.visibility, video.location, video.intro, video.outro, video.recap, video.next_preview, users.username
+         FROM content JOIN video ON content.video_id = video.id JOIN users ON users.id = content.uploader_id WHERE content.id = ?`,
         [contentId]
       );
       return res.send({ success: true, data: video, error: null });
@@ -38,7 +40,7 @@ async function videoById(res, contentId) {
   }
 }
 
-async function createVideo(res, file, video) {
+async function createVideo(res, file, thumbnail, video) {
   try {
     // this will keep generating a uuid till it has one that is not used
     let uuid;
@@ -68,9 +70,10 @@ async function createVideo(res, file, video) {
       if (!file) {
         return res.send({ success: false, data: null, error: "Could not upload video" });
       }
-      const uploadPath = VIDEO_FOLDER_PATH + uuid + `/${uuid}.mp4`;
+      const uploadPath = VIDEO_FOLDER_PATH + uuid + `/${uuid}`;
       // saves file
-      await file.mv(uploadPath);
+      await file.mv(uploadPath + '.mp4');
+      await thumbnail.mv(uploadPath + '.png');
 
       // adds video file to database
       const { insertId: videoId } = await query("INSERT INTO video (location) VALUES (?)", [`/${uuid}/${uuid}.mp4`]);
@@ -126,17 +129,19 @@ async function seriesEpisodeCreate(res, file, contentId, episode, requesterId) {
     await file.mv(uploadPath);
 
     // adds video file to database
-    const { insertId: videoId } = await query("INSERT INTO video (location) VALUES (?)", [`/${contentId}/${contentId}-${maxEpisodeNum + 1}.mp4`]);
+    const { insertId: videoId } = await query("INSERT INTO video (location) VALUES (?)", [
+      `/${contentId}/${contentId}-${maxEpisodeNum + 1}.mp4`,
+    ]);
     //adds needed keys for database
     episode.video_id = videoId;
     episode.content_id = contentId;
     episode.episode_number = maxEpisodeNum + 1;
-    episode.thumbnail = ''
+    episode.thumbnail = "";
     // adds video info to database
     await query("INSERT INTO series_episode SET ?", [episode]);
     return res.send({ success: true, data: contentId, error: null });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.send({ success: false, data: null, error: "Something went wrong please try again." });
   }
 }
@@ -188,20 +193,19 @@ async function editEpisodeInfo(res, contendId, episode, requesterId) {
     if (!content || content.uploader_id !== requesterId) {
       return res.send({ success: false, data: null, error: "You don't have permission to edit this video" });
     }
-    await query("UPDATE series_episode SET ? WHERE series_episode.episode_number = ? AND series_episode.content_id = ?", [
-      episode,
-      episode.episode_number,
-      contendId,
-    ]);
+    await query(
+      "UPDATE series_episode SET ? WHERE series_episode.episode_number = ? AND series_episode.content_id = ?",
+      [episode, episode.episode_number, contendId]
+    );
     return res.send({ success: true, data: null, error: null });
   } catch (error) {
     return res.send({ success: false, data: null, error: "Something went wrong please try again." });
   }
 }
 
-async function streamVideo(res, contentId) {
+async function streamVideo(res, contentId, requesterId) {
   const [content] = await query("SELECT * FROM content WHERE content.id = ?", [contentId]);
-  if (!content) {
+  if (!content || (content.visibility === "private" && content.uploader_id !== requesterId)) {
     return res.send({ success: false, data: null, error: "Video not found" });
   }
   if (content.type === "series") {
@@ -215,10 +219,10 @@ async function streamVideo(res, contentId) {
   }
 }
 
-async function streamSeries(res, contentId, episodeNum) {
+async function streamSeries(res, contentId, episodeNum, requesterId) {
   try {
     const [content] = await query("SELECT * FROM content WHERE content.id = ?", [contentId]);
-    if (!content) {
+    if (!content || (content.visibility === "private" && content.uploader_id !== requesterId)) {
       return res.send({ success: false, data: null, error: "Video not found" });
     }
     if (content.type !== "series") {
@@ -229,7 +233,55 @@ async function streamSeries(res, contentId, episodeNum) {
       return res.send({ success: false, data: null, error: "No video found" });
     }
     return res.sendFile(resolvedPath);
-  } catch (error) {}
+  } catch (error) {
+    return res.send({ success: false, data: null, error: "No video found" });
+  }
 }
 
-module.exports = { videoById, createVideo, deleteVideo, editVideoInfo, editEpisodeInfo, streamVideo, streamSeries, seriesEpisodeCreate };
+async function homeVideos(res, requesterId) {
+  try {
+    const content = await query(`SELECT c.id, c.type, c.title, c.description, c.tags, c.upload_date AS uploadDate,
+    c.views, c.likes, c.dislikes, c.uploader_id AS uploaderId, c.duration, c.visibility, c.thumbnail, users.username
+    FROM content AS c JOIN users ON c.uploader_id = users.id WHERE 1`);
+    const filtered = await filterUserVideos(content, requesterId);
+    return res.send({ success: true, data: filtered, error: null });
+  } catch (error) {
+    return res.send({ success: false, data: null, error: "Something went wrong" });
+  }
+}
+
+async function thumbnail(res, contentId, requesterId) {
+  try {
+    const [content] = await query("SELECT * from content WHERE content.id = ?", [contentId]);
+    if (content.visibility !== "public") {
+      if (content.uploader_id !== requesterId) {
+        const resolvedPath = path.resolve("./server/assets/404/404.PNG");
+        if (!fs.existsSync(resolvedPath)) {
+          return res.send({ success: false, data: null, error: "No image found" });
+        }
+        return res.sendFile(resolvedPath);
+      }
+    }
+    const resolvedPath = path.resolve(`${VIDEO_FOLDER_PATH}/${contentId}/${contentId}.PNG`);
+    return res.sendFile(resolvedPath);
+  } catch (error) {
+    const resolvedPath = path.resolve("./server/assets/404/404.PNG");
+    if (!fs.existsSync(resolvedPath)) {
+      return res.send({ success: false, data: null, error: "No image found" });
+    }
+    return res.sendFile(resolvedPath);
+  }
+}
+
+module.exports = {
+  videoById,
+  createVideo,
+  deleteVideo,
+  editVideoInfo,
+  editEpisodeInfo,
+  streamVideo,
+  streamSeries,
+  seriesEpisodeCreate,
+  homeVideos,
+  thumbnail,
+};
