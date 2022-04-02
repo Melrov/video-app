@@ -7,7 +7,7 @@ const fileUpload = require('express-fileupload');
 
 const userRouter = require("./server/routes/user.routes")
 const videoRouter = require("./server/routes/video.routes")
-const uploadRouter = require("./server/routes/upload.routes")
+//const uploadRouter = require("./server/routes/upload.routes")
 
 const app = express();
 const SERVER_PORT = process.env.PORT || 8080;
