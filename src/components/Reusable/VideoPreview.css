@@ -1,0 +1,57 @@
+.container-row {
+  display: flex;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.container-home {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.container-home:hover {
+  box-shadow: 0px 0px 10px 0px black;
+}
+
+.container-row:hover{
+  box-shadow: 0px 0px 10px 0px black;
+}
+
+.container-row img {
+  width: 100%;
+}
+
+.container-row .thumbnail-con {
+  max-height: 65px;
+  width: 50%;
+}
+
+.container-row .info-con {
+  width: 50%;
+}
+
+.container-home img {
+  width: 250px;
+  height: 140px;
+}
+
+.tooltip {
+  position: absolute;
+  color: white;
+  bottom: 8px;
+  right: 4px;
+  font-size: 11px;
+  background: rgb(0 0 0 / 50%);
+  border-radius: 7px;
+  padding: 1px 6px 1px 6px;
+}
+
+.thumbnail-con {
+  position: relative;
+}
+
+.info-con {
+    font-size: 14px;
+}
+
