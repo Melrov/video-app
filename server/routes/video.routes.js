@@ -24,7 +24,11 @@ router.put("/create", [authenticate, uploadCheck], (req, res) => {
     visibility: req.body.visibility,
     uploader_id: req.user.id,
   };
-  createVideo(res, req.files.videoFile, req.files.thumbnail, video);
+  if(video.type === "series"){
+    
+  } else {
+    createVideo(res, req.files.videoFile, req.files.thumbnail, video);
+  }
 });
 
 router.put("/create/:contentId", [authenticate], (req, res) => {
@@ -35,7 +39,7 @@ router.put("/create/:contentId", [authenticate], (req, res) => {
     title: req.body.title,
     description: req.body.description,
   };
-  seriesEpisodeCreate(res, req.files.sampleFile, req.params.contentId, episode, req.user.id);
+  seriesEpisodeCreate(res, req.files.videoFile, req.params.contentId, episode, req.user.id);
 });
 
 router.delete("/delete", [authenticate], (req, res) => {
@@ -72,8 +76,8 @@ router.get("/stream/:contentId", [requesterId], (req, res) => {
   streamVideo(res, req.params.contentId, req.user.id);
 });
 
-router.get("/stream/:contentId/:episodeNum", [requesterId], (req, res) => {
-  streamSeries(res, req.params.contentId, req.params.episodeNum, req.user.id);
+router.get("/stream/:contentId/:season/:episodeNum", [requesterId], (req, res) => {
+  streamSeries(res, req.params.contentId, req.params.season, req.params.episodeNum, req.user.id);
 });
 
 router.get("/home", [requesterId], (req, res) => {

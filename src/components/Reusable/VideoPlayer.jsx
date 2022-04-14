@@ -54,7 +54,7 @@ const Controls = styled.div`
   display: ${props => props.hidden ? 'none' : 'block'};
 `
 
-const VideoPlayer = ({ videoId }) => {
+const VideoPlayer = ({ videoId, episodeNum = 0 }) => {
   const videoElement = useRef(null);
   const inputRef = useRef();
   const playBtn = useRef();
@@ -87,7 +87,7 @@ const VideoPlayer = ({ videoId }) => {
   return (
     <div className="video-wrapper">
       <Video
-        src={`/api/video/stream/${videoId}`}
+        src={`/api/video/stream/${videoId}${episodeNum > 0 ? `/${episodeNum}` : ""}`}
         ref={videoElement}
         onTimeUpdate={handleOnTimeUpdate}
         onLoadedData={loadedData}

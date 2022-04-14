@@ -10,6 +10,7 @@ import ProtectedRoutes from "./components/ProtectedRoutes";
 import { useContext, useEffect } from "react";
 import useFetch from "./hooks/useFetch";
 import { UserContext } from "./context/UserContext";
+import SeriesPage from "./components/SeriesPage.jsx";
 
 function App() {
   const { verify } = useFetch()
@@ -31,6 +32,7 @@ function App() {
         <Route path="/login" element={<ProtectedRoutes isPrivate={false}><LoginPage /></ProtectedRoutes>} />
         <Route path="/signup" element={<ProtectedRoutes isPrivate={false}><SignupPage /></ProtectedRoutes>} />
         <Route path="/video/:contentId" element={<VideoPage />} />
+        <Route path="/video/:contentId/:season/:episodeNum" element={<SeriesPage />} />
         <Route
           path="/upload"
           element={
