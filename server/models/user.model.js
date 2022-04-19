@@ -1,9 +1,8 @@
 const query = require("../config/mysql.config");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { v4: uuidv4 } = require("uuid");
 const { filterUserVideos } = require("../functions/video.functions");
-const { checkUuidAvailability } = require("../functions/uuid.functions")
+const { generateUuid } = require("../functions/uuid.functions")
 
 async function login(res, username, password) {
   try {
@@ -54,10 +53,7 @@ async function signup(res, username, password) {
       });
     }
     const hash = await bcrypt.hash(password, 10);
-    let uuid;
-    do {
-        uuid = uuidv4();
-    } while (!checkUuidAvailability(uuid));
+    const uuid = generateUuid()
     
     await query("INSERT INTO users (id, username, password) VALUE (?, ?, ?)", [uuid, username, hash]);
     return res.send({ success: true, data: null, error: null });
