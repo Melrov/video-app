@@ -4,11 +4,13 @@ const { videoVisibilityCheck, uploadCheck, editInputCheck } = require("../middle
 const {
   videoById,
   createVideo,
+  createSeries,
   deleteVideo,
   editVideoInfo,
   editEpisodeInfo,
   streamVideo,
   streamSeries,
+  seriesSeasonCreate,
   seriesEpisodeCreate,
   homeVideos,
   thumbnail,
@@ -24,24 +26,46 @@ router.put("/create", [authenticate, uploadCheck], (req, res) => {
     visibility: req.body.visibility,
     uploader_id: req.user.id,
   };
-  if(video.type === "series"){
-    
+  if (video.type === "series") {
+    createSeries(res, video)
   } else {
     createVideo(res, req.files.videoFile, req.files.thumbnail, video);
   }
 });
 
-router.put("/create/:contentId", [authenticate], (req, res) => {
+// season create for series
+router.put("/season/create/:contentId", [authenticate], (req, res) => {
+  if (!req.body.title || !req.body.description || !req.body.season || !req.params.contentId) {
+    return res.send({ success: false, data: null, error: "Invalid data provided" });
+  }
+  const season = {
+    title: req.body.title,
+    description: req.body.description,
+    season: req.body.season,
+    content_id: req.params.contentId,
+  };
+  seriesSeasonCreate(res, season, req.user.id);
+});
+
+// episode create for season
+router.put("/episode/create/:season/:contentId", [authenticate], (req, res) => {
   if (!req.body.title || !req.body.description) {
     return res.send({ success: false, data: null, error: "Invalid data provided" });
+  }
+  if (!req.files || Object.keys(req.files).length === 0) {
+    return res.send({ success: false, data: null, error: "No files were uploaded" });
+  }
+  if(!req.files.videoFile){
+    return res.send({ success: false, data: null, error: "Please upload a video" });
   }
   let episode = {
     title: req.body.title,
     description: req.body.description,
   };
-  seriesEpisodeCreate(res, req.files.videoFile, req.params.contentId, episode, req.user.id);
+  seriesEpisodeCreate(res, req.files.videoFile, req.params.contentId, req.params.season, episode, req.user.id);
 });
 
+// delete for the entire content including all episodes if series fix later
 router.delete("/delete", [authenticate], (req, res) => {
   if (!req.body.contentId) {
   }

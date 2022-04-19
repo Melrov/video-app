@@ -20,9 +20,7 @@ async function videoVisibilityCheck(req, res, next) {
 
 async function uploadCheck(req, res, next) {
   // Todo maybe change it to use temp file instead of memory
-  // console.log(req.files)
-  // req.files.sampleFile.data = null
-  // console.log(req.files)
+  //this needs a re work not every episode will require a thumbnail probably
   const b = req.body;
   if (!req.user.id) {
     return res.send({ success: false, data: null, error: "Please Sign in first" });
@@ -30,18 +28,23 @@ async function uploadCheck(req, res, next) {
   if (!b.type || !b.title || !b.description || !b.visibility) {
     return res.send({ success: false, data: null, error: "Invalid data provided" });
   }
-  if (b.type === "movie" || b.type === "series" || b.type === "video") {
-    return next();
-  }
-  if (b.type !== 'series'){
+  if(b.type === "series"){
+
+  } else {
+    if (b.type !== "movie" && b.type !== "video") {
+      return res.send({ success: false, data: null, error: "Invalid type provided" });
+    }
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.send({ success: false, data: null, error: "No files were uploaded" });
     }
-    if(!req.files.videoFile || !req.files.thumbnail){
-      return res.send({ success: false, data: null, error: "Invalid file input" });
+    if(!req.files.videoFile){
+      return res.send({ success: false, data: null, error: "Please upload a video" });
+    }
+    if(!req.files.thumbnail){
+      return res.send({ success: false, data: null, error: "Please upload a thumbnail" });
     }
   }
-  return res.send({ success: false, data: null, error: "Invalid data provided." });
+  return next()
 }
 
 function editInputCheck(req, res, next) {
