@@ -1,4 +1,5 @@
 const query = require("../config/mysql.config");
+const { v4: uuidv4 } = require("uuid");
 
 async function checkUuidAvailability(uuid) {
   const [user] = await query("SELECT id from users WHERE users.id = ?", [uuid]);
@@ -8,6 +9,14 @@ async function checkUuidAvailability(uuid) {
   return true;
 }
 
-module.exports = {
-    checkUuidAvailability
+function generateUuid() {
+  let uuid;
+  do {
+    uuid = uuidv4();
+  } while (!checkUuidAvailability(uuid));
+  return uuid;
 }
+
+module.exports = {
+  generateUuid,
+};
