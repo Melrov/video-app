@@ -9,9 +9,10 @@ const { filterUserVideos } = require("../functions/video.functions");
  *
  * @param {*} res
  * @param {*} contentId
+ * @param {*} userId
  * @returns info about the video
  */
-async function videoById(res, contentId) {
+async function videoById(res, contentId, userId) {
   try {
     const [video] = await query(
       `SELECT content.id, type, title,description, tags, upload_date as uploadDate, views,
@@ -22,34 +23,60 @@ async function videoById(res, contentId) {
     if (!video) {
       return res.send({ success: true, data: null, error: "Video not found" });
     }
+    if(video.visibility === "private" && video.uploader_id !== userId){
+      return res.send({ success: true, data: null, error: "Video not found" });
+    }
     await query("UPDATE content SET `views`=? WHERE content.id = ?", [video.views + 1, contentId]);
     if (video.type === "series") {
       const seasons = await query(`SELECT id, title, description, season FROM series_season WHERE series_season.content_id = ?`, [
         contentId,
       ]);
       let editedSeasons = [];
-      for (let i = 0; i < seasons.length; i++) {
-        const episodes = await query(
-          `SELECT se.title, se.description, se.episode_number as episodeNumber,
-           video.intro, video.outro, video.recap, video.next_preview as nextPreview
-           FROM series_episode AS se JOIN video ON se.video_id = video.id WHERE se.season_id = ?`,
-          [seasons[i].id]
-        );
-        editedSeasons.push({
-          season: seasons[i].season,
-          title: seasons[i].title,
-          description: seasons[i].description,
-          episodes: episodes,
-        });
+      if(userId){
+        // episodes query with user watch time
+        for (let i = 0; i < seasons.length; i++) {
+          const episodes = await query(
+            `SELECT se.title, se.description, se.episode_number as episodeNumber,
+             video.intro, video.outro, video.recap, video.next_preview as nextPreview, wt.time AS watchTime
+             FROM series_episode AS se JOIN video ON se.video_id = video.id
+             LEFT OUTER JOIN watch_time AS wt ON wt.content_id = ? AND wt.season = ? AND wt.episode_num = se.episode_number AND wt.user_id = ?
+             WHERE se.season_id = ?`,
+            [contentId, seasons[i].season, userId, seasons[i].id]
+          );
+          editedSeasons.push({
+            season: seasons[i].season,
+            title: seasons[i].title,
+            description: seasons[i].description,
+            episodes: episodes,
+          });
+        }
+      } else {
+        // episodes query without user watch time
+        for (let i = 0; i < seasons.length; i++) {
+          const episodes = await query(
+            `SELECT se.title, se.description, se.episode_number as episodeNumber,
+             video.intro, video.outro, video.recap, video.next_preview as nextPreview
+             FROM series_episode AS se JOIN video ON se.video_id = video.id WHERE se.season_id = ?`,
+            [seasons[i].id]
+          );
+          editedSeasons.push({
+            season: seasons[i].season,
+            title: seasons[i].title,
+            description: seasons[i].description,
+            episodes: episodes,
+          });
+        }
       }
       return res.send({ success: true, data: Object.assign(video, { seasons: editedSeasons }), error: null });
     } else {
       const [video] = await query(
-        `SELECT content.id, content.type, content.title, content.description,content.tags,
+        `SELECT content.id, content.type, content.title, content.description,content.tags, wt.time AS watchTime,
          content.upload_date AS uploadDate, content.views, content.likes, content.dislikes, content.uploader_id AS uploaderId,
          content.visibility, video.intro, video.outro, video.recap, video.next_preview, users.username
-         FROM content JOIN video ON content.video_id = video.id JOIN users ON users.id = content.uploader_id WHERE content.id = ?`,
-        [contentId]
+         FROM content JOIN video ON content.video_id = video.id JOIN users ON users.id = content.uploader_id
+         LEFT OUTER JOIN watch_time AS wt ON wt.content_id = content.id AND wt.user_id = ?
+         WHERE content.id = ?`,
+        [userId, contentId]
       );
       return res.send({ success: true, data: video, error: null });
     }
@@ -95,7 +122,7 @@ async function createVideo(res, file, thumbnail, video) {
   }
 }
 
-async function createSeries(res, series) {
+async function createSeries(res, series, thumbnail) {
   try {
     const uuid = generateUuid();
     //adds needed keys for database
@@ -103,6 +130,19 @@ async function createSeries(res, series) {
     series.video_id = null;
     series.id = uuid;
     await query("INSERT INTO content SET ?", [series]);
+
+    //if folder does not exist make it
+    if (!fs.existsSync(VIDEO_FOLDER_PATH + uuid)) {
+      fs.mkdirSync(VIDEO_FOLDER_PATH + uuid);
+    }
+    // the video does not exist or in expected key
+    if (!thumbnail) {
+      return res.send({ success: false, data: null, error: "Could not upload thumbnail" });
+    }
+    const uploadPath = VIDEO_FOLDER_PATH + uuid + `/${uuid}`;
+    // saves file
+    await thumbnail.mv(uploadPath + ".png");
+
     return res.send({ success: true, data: uuid, error: null });
   } catch (error) {
     console.log(error);
@@ -123,7 +163,7 @@ async function seriesSeasonCreate(res, season, requesterId) {
       return res.send({ success: false, data: null, error: "Not authorized to add episodes" });
     }
     await query("INSERT INTO series_season SET ?", [season]);
-    return res.send({ success: true, data: null, error: null });
+    return res.send({ success: true, data: { contentId: season.content_id, season: season.season }, error: null });
   } catch (error) {
     console.log(error);
     return res.send({ success: false, data: null, error: "Something went wrong please try again." });
@@ -172,7 +212,7 @@ async function seriesEpisodeCreate(res, file, contentId, seasonNum, episode, req
       fs.mkdirSync(VIDEO_FOLDER_PATH + contentId + `/${season.season}`);
     }
     // if file exists then return error
-    else if (fs.existsSync(VIDEO_FOLDER_PATH + contentId +`/${season.season}/${contentId}-${maxEpisodeNum + 1}.mp4`)) {
+    else if (fs.existsSync(VIDEO_FOLDER_PATH + contentId + `/${season.season}/${contentId}-${maxEpisodeNum + 1}.mp4`)) {
       return res.send({ success: false, data: null, error: "Something went wrong." });
     }
 
@@ -191,7 +231,7 @@ async function seriesEpisodeCreate(res, file, contentId, seasonNum, episode, req
     episode.thumbnail = "";
     // adds video info to database
     await query("INSERT INTO series_episode SET ?", [episode]);
-    return res.send({ success: true, data: contentId, error: null });
+    return res.send({ success: true, data: { contentId, season: season.season, episode: episode.episode_number }, error: null });
   } catch (error) {
     console.log(error);
     return res.send({ success: false, data: null, error: "Something went wrong please try again." });
@@ -226,29 +266,29 @@ async function deleteVideo(res, contentId, requesterId) {
   }
 }
 
-async function editVideoInfo(res, contendId, video, requesterId) {
+async function editVideoInfo(res, contentId, video, requesterId) {
   try {
     const [content] = await query("SELECT uploader_id FROM content WHERE content.id = ?");
     if (!content || content.uploader_id !== requesterId) {
       return res.send({ success: false, data: null, error: "You don't have permission to edit this video" });
     }
-    await query("UPDATE content SET ? WHERE content.id = ?", [video, contendId]);
+    await query("UPDATE content SET ? WHERE content.id = ?", [video, contentId]);
     return res.send({ success: true, data: null, error: null });
   } catch (error) {
     return res.send({ success: false, data: null, error: "Something went wrong please try again." });
   }
 }
 
-async function editEpisodeInfo(res, contendId, episode, requesterId) {
+async function editEpisodeInfo(res, contentId, episode, requesterId) {
   try {
-    const [content] = await query("SELECT * FROM content WHERE content.id = ?", [contendId]);
+    const [content] = await query("SELECT * FROM content WHERE content.id = ?", [contentId]);
     if (!content || content.uploader_id !== requesterId) {
       return res.send({ success: false, data: null, error: "You don't have permission to edit this video" });
     }
     await query("UPDATE series_episode SET ? WHERE series_episode.episode_number = ? AND series_episode.content_id = ?", [
       episode,
       episode.episode_number,
-      contendId,
+      contentId,
     ]);
     return res.send({ success: true, data: null, error: null });
   } catch (error) {
@@ -331,6 +371,52 @@ async function thumbnail(res, contentId, requesterId) {
   }
 }
 
+async function seriesWatchTimeSubmit(res, contentId, season, episode, userId, time) {
+  try {
+    const [watchedItem] = await query(
+      "SELECT wt.id FROM watch_time AS wt WHERE wt.content_id = ? AND wt.season = ? AND wt.episode_num = ? AND wt.user_id = ?",
+      [contentId, season, episode, userId]
+    );
+    if (watchedItem) {
+      await query("UPDATE watch_time AS wt (time) VALUES(?) WHERE wt.id = ?", [time, watchedItem.id]);
+    } else {
+      await query("INSERT INTO watch_time (user_id, content_id, season, episode_num, time) VALUES(?, ?, ?, ?, ?)", [
+        userId,
+        contentId,
+        season,
+        episode,
+        time,
+      ]);
+    }
+    return res.send({success: true, data: time, error: null})
+  } catch (error) {
+    console.log(error)
+    return res.send({success: false, data: null, error: "Something went wrong."})
+  }
+}
+
+async function videoWatchTimeSubmit(res, contentId, userId, time) {
+  try {
+    const [watchedItem] = await query(
+      "SELECT wt.id FROM watch_time AS wt WHERE wt.content_id = ? AND wt.user_id = ?",
+      [contentId, userId]
+    );
+    if (watchedItem) {
+      await query("UPDATE watch_time AS wt (time) VALUES(?) WHERE wt.id = ?", [time, watchedItem.id]);
+    } else {
+      await query("INSERT INTO watch_time (user_id, content_id, time) VALUES(?, ?, ?)", [
+        userId,
+        contentId,
+        time,
+      ]);
+    }
+    return res.send({success: true, data: time, error: null})
+  } catch (error) {
+    console.log(error)
+    return res.send({success: false, data: null, error: "Something went wrong."})
+  }
+}
+
 module.exports = {
   videoById,
   createVideo,
@@ -344,4 +430,6 @@ module.exports = {
   seriesEpisodeCreate,
   homeVideos,
   thumbnail,
+  seriesWatchTimeSubmit,
+  videoWatchTimeSubmit,
 };
