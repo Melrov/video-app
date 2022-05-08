@@ -84,6 +84,16 @@ function useFetch() {
     [makeAPICall]
   );
 
+  /**
+   * gets user info for user page
+   * @returns success, data{ ...userInfo, [ ...videoInfo ] }, error
+   */
+  const userSeries = useCallback(async () => {
+    return await makeAPICall("/api/user/my/series", {
+      method: "get",
+    });
+  }, [makeAPICall]);
+
   // ----- video routes -----
 
   /**
@@ -116,17 +126,20 @@ function useFetch() {
    * @param {string} type
    * @param {string} visibility
    * @param {string} videoFile
-   * @returns success, data{ uuid }, error
+   * @returns success, data{ contentId }, error
    */
   const createVideo = useCallback(
-    async (title, description, type, visibility, videoFile, thumbnailFile) => {
+    async (title, description, type, visibility, thumbnailFile, videoFile, duration) => {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("description", description);
       formData.append("type", type);
       formData.append("visibility", visibility);
-      formData.append("videoFile", videoFile);
-      formData.append("thumbnail", thumbnailFile)
+      formData.append("thumbnail", thumbnailFile);
+      formData.append("duration", duration);
+      if (type !== "series") {
+        formData.append("videoFile", videoFile);
+      }
       return await makeAPICall("/api/video/create", {
         method: "put",
         headers: {
@@ -139,24 +152,46 @@ function useFetch() {
   );
 
   /**
-   * series video creation
+   * series episode creation
    * @param {string} contentId
    * @param {string} title
    * @param {string} description
+   * @param {string} season
    * @param {string} videoFile
-   * @returns success, data{ contentId }, error
+   * @returns success, data{ contentId, season, episode }, error
    */
-  const createSeriesVideo = useCallback(
-    async (contentId, title, description, videoFile) => {
-      return await makeAPICall(`/api/video/create/${contentId}`, {
+  const createSeriesEpisode = useCallback(
+    async (contentId, title, description, season, videoFile, duration) => {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("videoFile", videoFile);
+      formData.append("duration", duration);
+      return await makeAPICall(`/api/video/episode/create/${season}/${contentId}`, {
         method: "put",
         headers: {
-          "Content-Type": "multipart/form-data; boundary=<calculated when request is sent>",
+          "Content-Type": "multipart/form-data",
         },
-        formData: {
+        data: formData,
+      });
+    },
+    [makeAPICall]
+  );
+
+  /**
+   * series season creation
+   * @param {string} contentId
+   * @param {string} title
+   * @param {string} description
+   * @returns success, data{ contentId, season }, error
+   */
+  const createSeriesSeason = useCallback(
+    async (contentId, title, description) => {
+      return await makeAPICall(`/api/video/season/create/${contentId}`, {
+        method: "put",
+        data: {
           title,
           description,
-          video: videoFile,
         },
       });
     },
@@ -232,19 +267,45 @@ function useFetch() {
     [makeAPICall]
   );
 
+  /**
+   * submitting of current watch time on a video
+   * @param {string} time
+   * @param {string} contentId
+   * @param {string} season can be undefined
+   * @param {string} episode can be undefined
+   * @returns success, data( null ), error
+   */
+  const watchTimeUpdate = useCallback(
+    async (time, contentId, season, episode) => {
+      return await makeAPICall("/api/video/watchtime", {
+        method: "put",
+        data: {
+          time,
+          contentId,
+          season,
+          episode,
+        },
+      });
+    },
+    [makeAPICall]
+  );
+
   return {
     login,
     signup,
     logout,
     verify,
     userInfo,
+    userSeries,
     videoInfo,
     createVideo,
-    createSeriesVideo,
+    createSeriesSeason,
+    createSeriesEpisode,
     deleteVideo,
     editVideoInfo,
     editEpisodeInfo,
     homeVideos,
+    watchTimeUpdate,
   };
 }
 

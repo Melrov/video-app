@@ -1,7 +1,3 @@
-body {
-  background: #eeeeee;
-}
-
 h1 {
   color: white;
 }
@@ -33,7 +29,7 @@ video {
   visibility: hidden;
   position: absolute;
   overflow: hidden;
-  bottom: 4px;
+  bottom: 3px;
   left: 0;
   height: 55px;
   padding-left: 5px;
@@ -141,15 +137,16 @@ video {
 
 .volume_range {
   -webkit-appearance: none;
-  appearance: none;
   width: 0px;
   height: 3px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  background-image: linear-gradient(white 100%, white 0%);
   color: #fff;
   cursor: pointer;
   outline: none;
   border: none;
-  transition: 0.4s;
+  transition: width 0.4s;
+  background-repeat: no-repeat;
 }
 .controls .icon .volume_range::-webkit-slider-thumb {
   -webkit-appearance: none;

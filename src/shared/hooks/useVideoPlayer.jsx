@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 
-const useVideoPlayer = (videoElement, inputRef, playBtn, timeRef, controlsRef, volumeBtnRef, fullscreen) => {
+const useVideoPlayer = (videoElement, inputRef, playBtn, timeRef, controlsRef, volumeBtnRef, fullscreen, watchTime, updateWatchTime) => {
   const [playerState, setPlayerState] = useState({
     wasPlaying: false,
     isPlaying: false,
@@ -12,6 +12,7 @@ const useVideoPlayer = (videoElement, inputRef, playBtn, timeRef, controlsRef, v
     volume: 100,
     wasVolume: 100,
     superHidden: true,
+    loading: false,
   });
 
   const reset = useCallback(() => {
@@ -34,36 +35,63 @@ const useVideoPlayer = (videoElement, inputRef, playBtn, timeRef, controlsRef, v
     }
   }, [playerState, controlsRef]);
 
-  const loadedData = useCallback((e) => {
-    let videoDuration = e.target.duration;
-    let totalMin = Math.floor(videoDuration / 60);
-    let totalSec = Math.floor(videoDuration % 60);
-
-    // if seconds are less then 10 then add 0 at the begning
-    totalSec = totalSec < 10 ? "0" + totalSec : totalSec;
-    setPlayerState((curr) => {
-      return { ...curr, duration: `${totalMin} : ${totalSec}`, progress: 0, superHidden: false };
-    });
-  }, []);
+  const loadedData = useCallback(
+    (e) => {
+      let videoDuration = e.target.duration;
+      let totalMin = Math.floor(videoDuration / 60);
+      let totalSec = Math.floor(videoDuration % 60);
+      // if seconds are less then 10 then add 0 at the begning
+      totalSec = totalSec < 10 ? "0" + totalSec : totalSec;
+      //console.log("load", watchTime);
+      if (watchTime) {
+        e.target.currentTime = watchTime;
+        let currentVideoTime = watchTime;
+        let currentMin = Math.floor(currentVideoTime / 60);
+        let currentSec = Math.floor(currentVideoTime % 60);
+        // if seconds are less then 10 then add 0 at the begning
+        currentSec = currentSec < 10 ? "0" + currentSec : currentSec;
+        const progress = (currentVideoTime / e.target.duration) * 100;
+        setPlayerState((curr) => {
+          return { ...curr, progress, current: `${currentMin} : ${currentSec}`, duration: `${totalMin} : ${totalSec}`, superHidden: false };
+        });
+      } else {
+        setPlayerState((curr) => {
+          return { ...curr, duration: `${totalMin} : ${totalSec}`, progress: 0, superHidden: false };
+        });
+      }
+    },
+    [watchTime]
+  );
 
   const togglePlay = useCallback(() => {
     const playing = playerState.isPlaying;
     playBtn.current.innerText = playing ? "play_arrow" : "pause_arrow";
     setPlayerState((curr) => {
-      return { ...curr, isPlaying: !playing };
+      return { ...curr, isPlaying: !playing, wasPlaying: !playing };
     });
-    setPlayerState((curr) => {
-      return { ...curr, wasPlaying: !playing };
-    });
-  },[playerState.isPlaying, playBtn]);
+  }, [playerState.isPlaying, playBtn]);
 
   useEffect(() => {
     playerState.isPlaying ? videoElement.current.play() : videoElement.current.pause();
   }, [playerState.isPlaying, videoElement]);
 
+  useEffect(() => {
+    //this is disabled due to firing on video load
+    //console.log('pause setter')
+    //if (!playerState.isPlaying) updateWatchTime();
+  }, [playerState.isPlaying]);
+
+  useEffect(() => {
+    if (playerState.loading) {
+      setPlayerState((curr) => {
+        return { ...curr, loading: false };
+      });
+    }
+  }, [playerState.progress]);
+
   const handleOnTimeUpdate = useCallback(
     (e) => {
-      if(videoElement){
+      if (videoElement) {
         let currentVideoTime = videoElement.current.currentTime;
         let currentMin = Math.floor(currentVideoTime / 60);
         let currentSec = Math.floor(currentVideoTime % 60);
@@ -121,6 +149,7 @@ const useVideoPlayer = (videoElement, inputRef, playBtn, timeRef, controlsRef, v
     };
   }, [videoElement, inputRef, timeRef, playerState.wasPlaying, playBtn]);
 
+  //makes the bar input bar have color to current time
   useEffect(() => {
     if (inputRef) {
       inputRef.current.style.backgroundSize = `${playerState.progress}% 100%`;
@@ -139,11 +168,7 @@ const useVideoPlayer = (videoElement, inputRef, playBtn, timeRef, controlsRef, v
   );
 
   const toggleMute = useCallback(() => {
-    volumeBtnRef.current.innerText = !playerState.isMuted
-      ? "volume_off"
-      : playerState.volume <= 40
-      ? "volume_down"
-      : "volume_up";
+    volumeBtnRef.current.innerText = !playerState.isMuted ? "volume_off" : playerState.volume <= 40 ? "volume_down" : "volume_up";
     setPlayerState((curr) => {
       return {
         ...curr,
@@ -153,6 +178,7 @@ const useVideoPlayer = (videoElement, inputRef, playBtn, timeRef, controlsRef, v
     });
   }, [playerState.isMuted, playerState.wasVolume, playerState.volume, volumeBtnRef]);
 
+  //toggles video being muted
   useEffect(() => {
     playerState.isMuted ? (videoElement.current.muted = true) : (videoElement.current.muted = false);
   }, [playerState.isMuted, videoElement]);
@@ -174,6 +200,7 @@ const useVideoPlayer = (videoElement, inputRef, playBtn, timeRef, controlsRef, v
 
   const volumeChange = useCallback(
     (e) => {
+      e.target.style.backgroundSize = `${e.target.value}% 100%`;
       videoElement.current.volume = e.target.value / 100;
       if (parseInt(e.target.value) === 0) {
         volumeBtnRef.current.innerText = "volume_off";
@@ -212,6 +239,13 @@ const useVideoPlayer = (videoElement, inputRef, playBtn, timeRef, controlsRef, v
     }
   }, [videoElement, fullscreen]);
 
+  const startLoading = useCallback(() => {
+    //console.log('setting true')
+    setPlayerState((curr) => {
+      return { ...curr, loading: true };
+    });
+  }, []);
+
   return {
     playerState,
     togglePlay,
@@ -226,6 +260,7 @@ const useVideoPlayer = (videoElement, inputRef, playBtn, timeRef, controlsRef, v
     volumeChange,
     fullscreenClick,
     reset,
+    startLoading,
   };
 };
 
