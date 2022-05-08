@@ -3,16 +3,22 @@ import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./App";
 //import reportWebVitals from "./reportWebVitals";
-import UserProvider from "./context/UserContext";
 import VideosProvider from "./context/VideosContext";
+import { Provider } from "react-redux";
+//import ErrorBoundary from "./shared/components/ErrorBoundary";
+import store from "./redux/store";
+import { ThemeProvider } from "@mui/material/styles";
+import { theme } from "./shared/mui-theme";
 
 ReactDOM.render(
   <React.StrictMode>
-    <UserProvider>
-      <VideosProvider>
-        <App />
-      </VideosProvider>
-    </UserProvider>
+    <ThemeProvider theme={theme}>
+      <Provider store={store}>
+        <VideosProvider>
+          <App />
+        </VideosProvider>
+      </Provider>
+    </ThemeProvider>
   </React.StrictMode>,
   document.getElementById("root")
 );
