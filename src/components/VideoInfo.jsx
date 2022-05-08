@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import Theme from "./Theme";
 
 const TagCon = styled.div`
   display: block;
@@ -37,45 +38,52 @@ const Interaction = styled.div`
 const UserCon = styled.div``;
 
 const User = styled.span`
-    cursor: pointer;
-`
+  cursor: pointer;
+`;
+const InfoCon = styled.div`
+  color: ${(props) => props.theme.text.primary};
+`;
 
 function VideoInfo({ tags, title, username, description, views, uploadDate, likes, dislikes }) {
-    const navigate = useNavigate()
+  const navigate = useNavigate();
   return (
-    <div>
-      <TagCon>
-        {tags &&
-          tags.split("-").map((tag) => {
-            return <Tag>{`#${tag}`}</Tag>;
-          })}
-      </TagCon>
-      <Title>{title}</Title>
-      <ActionsCon>
-        <LeftCon>
-          <span>{`${views} views | ${new Date(uploadDate)}`}</span>
-        </LeftCon>
-        <RightCon>
-          <Interaction>
-            <button title="like">like</button>
-            <span>{likes}</span>
-          </Interaction>
-          <Interaction>
-            <button title="dislike">dislike</button>
-            <span>{dislikes}</span>
-          </Interaction>
-        </RightCon>
-      </ActionsCon>
-      <UserCon>
-        {/* <div>
+    <Theme>
+      <InfoCon>
+        <TagCon>
+          {tags &&
+            tags.split("-").map((tag) => {
+              return <Tag>{`#${tag}`}</Tag>;
+            })}
+        </TagCon>
+        <Title>{title}</Title>
+        <ActionsCon>
+          <LeftCon>
+            <span>{`${views} views | ${uploadDate}`}</span>
+          </LeftCon>
+          <RightCon>
+            <Interaction>
+              <button title="like">like</button>
+              <span>{likes}</span>
+            </Interaction>
+            <Interaction>
+              <button title="dislike">dislike</button>
+              <span>{dislikes}</span>
+            </Interaction>
+          </RightCon>
+        </ActionsCon>
+        <UserCon>
+          {/* <div>
           <img />
         </div> */}
-        <div>
-          <User onClick={() => navigate(`/channel/${username}`)} title={username}>{username}</User>
-          <p>{description}</p>
-        </div>
-      </UserCon>
-    </div>
+          <div>
+            <User onClick={() => navigate(`/channel/${username}`)} title={username}>
+              {username}
+            </User>
+            <p>{description}</p>
+          </div>
+        </UserCon>
+      </InfoCon>
+    </Theme>
   );
 }
 
