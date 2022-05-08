@@ -14,6 +14,9 @@ const {
   seriesEpisodeCreate,
   homeVideos,
   thumbnail,
+  seriesThumbnail,
+  seriesWatchTimeSubmit,
+  videoWatchTimeSubmit,
 } = require("../models/video.model");
 const router = express.Router();
 
@@ -27,21 +30,24 @@ router.put("/create", [authenticate, uploadCheck], (req, res) => {
     uploader_id: req.user.id,
   };
   if (video.type === "series") {
-    createSeries(res, video)
+    createSeries(res, video, req.files.thumbnail);
   } else {
+    if (!req.body.duration) {
+      return res.send({ success: false, data: null, error: "Something went wrong Please try again." });
+    }
+    video.duration = req.body.duration;
     createVideo(res, req.files.videoFile, req.files.thumbnail, video);
   }
 });
 
 // season create for series
 router.put("/season/create/:contentId", [authenticate], (req, res) => {
-  if (!req.body.title || !req.body.description || !req.body.season || !req.params.contentId) {
+  if (!req.body.title || !req.body.description || !req.params.contentId) {
     return res.send({ success: false, data: null, error: "Invalid data provided" });
   }
-  const season = {
+  let season = {
     title: req.body.title,
     description: req.body.description,
-    season: req.body.season,
     content_id: req.params.contentId,
   };
   seriesSeasonCreate(res, season, req.user.id);
@@ -49,18 +55,22 @@ router.put("/season/create/:contentId", [authenticate], (req, res) => {
 
 // episode create for season
 router.put("/episode/create/:season/:contentId", [authenticate], (req, res) => {
+  if (!req.body.duration) {
+    return res.send({ success: false, data: null, error: "Something went wrong Please try again." });
+  }
   if (!req.body.title || !req.body.description) {
     return res.send({ success: false, data: null, error: "Invalid data provided" });
   }
   if (!req.files || Object.keys(req.files).length === 0) {
     return res.send({ success: false, data: null, error: "No files were uploaded" });
   }
-  if(!req.files.videoFile){
+  if (!req.files.videoFile) {
     return res.send({ success: false, data: null, error: "Please upload a video" });
   }
   let episode = {
     title: req.body.title,
     description: req.body.description,
+    duration: req.body.duration,
   };
   seriesEpisodeCreate(res, req.files.videoFile, req.params.contentId, req.params.season, episode, req.user.id);
 });
@@ -108,8 +118,30 @@ router.get("/home", [requesterId], (req, res) => {
   homeVideos(res, req.user.id);
 });
 
+router.put("/watchtime", [authenticate], (req, res) => {
+  if (!req.body.time) {
+    return res.send({ success: false, data: null, error: "No time specified" });
+  }
+  if (!req.body.contentId) {
+    return res.send({ success: false, data: null, error: "No video specified" });
+  }
+  if (req.body.season) {
+    if (req.body.episode) {
+      seriesWatchTimeSubmit(res, req.body.contentId, req.body.season, req.body.episode, req.user.id, req.body.time);
+    } else {
+      return res.send({ success: false, data: null, error: "No episode specified" });
+    }
+  } else {
+    videoWatchTimeSubmit(res, req.body.contentId, req.user.id, req.body.time);
+  }
+});
+
 router.get("/thumbnail/:contentId", [requesterId], (req, res) => {
   thumbnail(res, req.params.contentId, req.user.id);
+});
+
+router.get("/thumbnail/:contentId/:season", [requesterId], (req, res) => {
+  seriesThumbnail(res, req.params.contentId, req.params.season, req.user.id);
 });
 
 router.get("/:contentId", [requesterId, videoVisibilityCheck], (req, res) => {

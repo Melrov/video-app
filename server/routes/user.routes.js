@@ -1,5 +1,5 @@
 const express = require("express");
-const { login, signup, videosByUserId } = require("../models/user.model");
+const { login, signup, videosByUserId, userSeries } = require("../models/user.model");
 const { authenticate, requesterId } = require("../middleware/authenticate.middleware");
 const { validateInput } = require("../middleware/user.middleware");
 const router = express.Router();
@@ -23,6 +23,10 @@ router.put("/signup", [validateInput], (req, res) => {
 
 router.get("/:userId", [requesterId], (req, res) => {
   videosByUserId(res, req.params.userId, req.user.id);
+});
+
+router.get("/my/series", [authenticate], (req, res) => {
+  userSeries(res, req.user.id);
 });
 
 module.exports = router;
