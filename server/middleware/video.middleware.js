@@ -28,8 +28,13 @@ async function uploadCheck(req, res, next) {
   if (!b.type || !b.title || !b.description || !b.visibility) {
     return res.send({ success: false, data: null, error: "Invalid data provided" });
   }
-  if(b.type === "series"){
-
+  if (b.type === "series") {
+    if (!req.files || Object.keys(req.files).length === 0) {
+      return res.send({ success: false, data: null, error: "No files were uploaded" });
+    }
+    if (!req.files.thumbnail) {
+      return res.send({ success: false, data: null, error: "Please upload a thumbnail" });
+    }
   } else {
     if (b.type !== "movie" && b.type !== "video") {
       return res.send({ success: false, data: null, error: "Invalid type provided" });
@@ -37,14 +42,14 @@ async function uploadCheck(req, res, next) {
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.send({ success: false, data: null, error: "No files were uploaded" });
     }
-    if(!req.files.videoFile){
+    if (!req.files.videoFile) {
       return res.send({ success: false, data: null, error: "Please upload a video" });
     }
-    if(!req.files.thumbnail){
+    if (!req.files.thumbnail) {
       return res.send({ success: false, data: null, error: "Please upload a thumbnail" });
     }
   }
-  return next()
+  return next();
 }
 
 function editInputCheck(req, res, next) {
