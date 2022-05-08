@@ -1,16 +1,20 @@
-import React, { useContext } from 'react'
-import { Navigate } from 'react-router-dom'
-import { UserContext } from '../context/UserContext'
+import React from "react";
+import { connect } from "react-redux";
+import { Navigate } from "react-router-dom";
 
-function ProtectedRoutes({ isPrivate, children }) {
-  const { user } = useContext(UserContext)
-  const redirectTo = isPrivate ? '/login': '/'
-  if(( user && isPrivate ) || ( !user && !isPrivate )){
-    return <div>{children}</div>
+export const ProtectedRoutes = ({ isPrivate, children, user }) => {
+  const redirectTo = isPrivate ? "/login" : "/";
+  if ((user && isPrivate) || (!user && !isPrivate)) {
+    return <div>{children}</div>;
+  } else {
+    return <Navigate to={redirectTo} />;
   }
-  else{
-    return <Navigate to={redirectTo} />
-  }
-}
+};
 
-export default ProtectedRoutes
+const mapStateToProps = (state) => ({
+  user: state.user.user,
+});
+
+const mapDispatchToProps = {};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProtectedRoutes);
