@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useState } from "react";
-import useFetch from "../hooks/useFetch";
+import useFetch from "../shared/hooks/useFetch";
 
 export const VideosContext = createContext(null);
 
@@ -19,7 +19,7 @@ function VideosProvider({ children }) {
     }
   }, [homeVideos]);
 
-  return <VideosContext.Provider value={{videos, error, refresh}}>{children}</VideosContext.Provider>;
+  return <VideosContext.Provider value={{ videos, error, refresh }}>{children}</VideosContext.Provider>;
 }
 
 export default VideosProvider;
