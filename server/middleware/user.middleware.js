@@ -6,9 +6,9 @@ function validateInput(req, res, next) {
   if (!(b.username.length >= 2) || !(b.username.length <= 25) || !(b.password.length >= 4) || !(b.password.length <= 512)) {
     return res.send({ success: false, data: null, error: "Invalid data provided" });
   }
-  return next()
+  return next();
 }
 
 module.exports = {
-    validateInput
-}
+  validateInput,
+};
