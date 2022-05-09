@@ -197,11 +197,11 @@ async function createSeries(res, series, thumbnail) {
   }
 }
 
-async function seriesSeasonCreate(res, season, requesterId) {
+async function seriesSeasonCreate(res, season, requesterId, thumbnail) {
   try {
     const content = await query(
-      `SELECT content.uploader_id, content.visibility FROM content
-       JOIN series_season ON content.id = series_season.content_id WHERE content.id = ?`,
+      `SELECT content.uploader_id, content.visibility, series_season.season FROM content
+       LEFT OUTER JOIN series_season ON content.id = series_season.content_id WHERE content.id = ?`,
       [season.content_id]
     );
     if (content.length === 0) {
@@ -213,8 +213,19 @@ async function seriesSeasonCreate(res, season, requesterId) {
       }
       return res.send({ success: false, data: null, error: "Not authorized to add episodes" });
     }
-    season.season = content.length + 1;
+    if (content.length === 1 && !content[0].season) {
+      season.season = 1;
+    } else {
+      season.season = content.length + 1;
+    }
     await query("INSERT INTO series_season SET ?", [season]);
+    const uploadPath = VIDEO_FOLDER_PATH + season.content_id + "/" + season.season;
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath);
+    }
+
+    // saves file
+    await thumbnail.mv(`${uploadPath}/${season.content_id}.png`);
     return res.send({ success: true, data: { contentId: season.content_id, season: season.season }, error: null });
   } catch (error) {
     console.log(error);
@@ -222,7 +233,7 @@ async function seriesSeasonCreate(res, season, requesterId) {
   }
 }
 
-async function seriesEpisodeCreate(res, file, contentId, seasonNum, episode, requesterId) {
+async function seriesEpisodeCreate(res, file, contentId, seasonNum, episode, requesterId, video) {
   try {
     // the video does not exist or was not passed in right
     if (!file) {
@@ -230,9 +241,9 @@ async function seriesEpisodeCreate(res, file, contentId, seasonNum, episode, req
     }
     //this will return nothing if it is not a series or no seasons exist
     const content = await query(
-      `SELECT content.uploader_id, content.visibility, series_season.season, series_season.id FROM content
+      `SELECT content.uploader_id, content.visibility, series_season.season, series_season.id, series_episode.episode_number FROM content
       JOIN series_season ON content.id = series_season.content_id
-      JOIN series_episode ON series_episode.season_id = series_season.id
+      LEFT OUTER JOIN series_episode ON series_episode.season_id = series_season.id
       WHERE content.id = ? AND series_season.season = ?`,
       [contentId, seasonNum]
     );
@@ -247,6 +258,12 @@ async function seriesEpisodeCreate(res, file, contentId, seasonNum, episode, req
       return res.send({ success: false, data: null, error: "Not authorized to add episodes" });
     }
 
+    if (content.length === 1 && !content[0].episode_number) {
+      episode.episode_number = 1;
+    } else {
+      episode.episode_number = content.length + 1;
+    }
+
     //if folder does not exist make it
     if (!fs.existsSync(VIDEO_FOLDER_PATH + contentId)) {
       fs.mkdirSync(VIDEO_FOLDER_PATH + contentId);
@@ -256,7 +273,9 @@ async function seriesEpisodeCreate(res, file, contentId, seasonNum, episode, req
       fs.mkdirSync(VIDEO_FOLDER_PATH + contentId + `/${seasonNum}`);
     }
     // if file exists then return error
-    else if (fs.existsSync(VIDEO_FOLDER_PATH + contentId + `/${seasonNum}/${contentId}-${content.length + 1}.mp4`)) {
+    else if (
+      fs.existsSync(VIDEO_FOLDER_PATH + contentId + `/${seasonNum}/${contentId}-${episode.episode_number}.mp4`)
+    ) {
       return res.send({ success: false, data: null, error: "Something went wrong." });
     }
 
@@ -265,17 +284,30 @@ async function seriesEpisodeCreate(res, file, contentId, seasonNum, episode, req
     await file.mv(uploadPath);
 
     // adds video file to database
-    const { insertId: videoId } = await query("INSERT INTO video (location) VALUES (?)", [
-      `/${contentId}//${seasonNum}/${contentId}-${content.length + 1}.mp4`,
-    ]);
+    console.log(video);
+    const { insertId: videoId } = await query(
+      "INSERT INTO video (location, intro, outro, recap, next_preview) VALUES (?, ?, ?, ?, ?)",
+      [
+        `/${contentId}//${seasonNum}/${contentId}-${content.length + 1}.mp4`,
+        video.intro,
+        video.outro,
+        video.recap,
+        video.next_preview,
+      ]
+    );
+
     //adds needed keys for database
     episode.video_id = videoId;
     episode.season_id = content[0].id;
-    episode.episode_number = content.length + 1;
     episode.thumbnail = "";
+
     // adds video info to database
     await query("INSERT INTO series_episode SET ?", [episode]);
-    return res.send({ success: true, data: { contentId, season: seasonNum, episode: episode.episode_number }, error: null });
+    return res.send({
+      success: true,
+      data: { contentId, season: seasonNum, episode: episode.episode_number },
+      error: null,
+    });
   } catch (error) {
     console.log(error);
     return res.send({ success: false, data: null, error: "Something went wrong please try again." });
@@ -329,11 +361,10 @@ async function editEpisodeInfo(res, contentId, episode, requesterId) {
     if (!content || content.uploader_id !== requesterId) {
       return res.send({ success: false, data: null, error: "You don't have permission to edit this video" });
     }
-    await query("UPDATE series_episode SET ? WHERE series_episode.episode_number = ? AND series_episode.content_id = ?", [
-      episode,
-      episode.episode_number,
-      contentId,
-    ]);
+    await query(
+      "UPDATE series_episode SET ? WHERE series_episode.episode_number = ? AND series_episode.content_id = ?",
+      [episode, episode.episode_number, contentId]
+    );
     return res.send({ success: true, data: null, error: null });
   } catch (error) {
     return res.send({ success: false, data: null, error: "Something went wrong please try again." });
@@ -359,7 +390,9 @@ async function streamVideo(res, contentId, requesterId) {
 
 async function streamSeries(res, contentId, season, episodeNum, requesterId) {
   try {
-    const [content] = await query("SELECT type, visibility, uploader_id FROM content WHERE content.id = ?", [contentId]);
+    const [content] = await query("SELECT type, visibility, uploader_id FROM content WHERE content.id = ?", [
+      contentId,
+    ]);
     if (!content || (content.visibility === "private" && content.uploader_id !== requesterId)) {
       return res.send({ success: false, data: null, error: "Video not found" });
     }
@@ -385,7 +418,9 @@ async function homeVideos(res, requesterId) {
     const filtered = await filterUserVideos(content, requesterId);
     filtered.forEach(
       (content) =>
-        (content.uploadDate = dateFns.formatDistanceToNow(new Date(content.uploadDate), { addSuffix: true }).replace("about", ""))
+        (content.uploadDate = dateFns
+          .formatDistanceToNow(new Date(content.uploadDate), { addSuffix: true })
+          .replace("about", ""))
     );
     return res.send({ success: true, data: filtered, error: null });
   } catch (error) {
@@ -471,7 +506,10 @@ async function seriesWatchTimeSubmit(res, contentId, season, episode, userId, ti
 
 async function videoWatchTimeSubmit(res, contentId, userId, time) {
   try {
-    const [watchedItem] = await query("SELECT wt.id FROM watch_time AS wt WHERE wt.content_id = ? AND wt.user_id = ?", [contentId, userId]);
+    const [watchedItem] = await query("SELECT wt.id FROM watch_time AS wt WHERE wt.content_id = ? AND wt.user_id = ?", [
+      contentId,
+      userId,
+    ]);
     if (watchedItem) {
       await query("UPDATE watch_time AS wt SET time = ? WHERE wt.id = ?", [time, watchedItem.id]);
     } else {
