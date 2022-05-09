@@ -42,7 +42,7 @@ router.put("/create", [authenticate, uploadCheck], (req, res) => {
 
 // season create for series
 router.put("/season/create/:contentId", [authenticate], (req, res) => {
-  if (!req.body.title || !req.body.description || !req.params.contentId) {
+  if (!req.body.title || !req.body.description || !req.params.contentId || !req.files.thumbnail) {
     return res.send({ success: false, data: null, error: "Invalid data provided" });
   }
   let season = {
@@ -50,7 +50,7 @@ router.put("/season/create/:contentId", [authenticate], (req, res) => {
     description: req.body.description,
     content_id: req.params.contentId,
   };
-  seriesSeasonCreate(res, season, req.user.id);
+  seriesSeasonCreate(res, season, req.user.id, req.files.thumbnail);
 });
 
 // episode create for season
@@ -72,7 +72,13 @@ router.put("/episode/create/:season/:contentId", [authenticate], (req, res) => {
     description: req.body.description,
     duration: req.body.duration,
   };
-  seriesEpisodeCreate(res, req.files.videoFile, req.params.contentId, req.params.season, episode, req.user.id);
+  let video = {
+    recap: req.body.recap,
+    intro: req.body.intro,
+    outro: req.body.outro,
+    next_preview: req.body.nextPreview,
+  }
+  seriesEpisodeCreate(res, req.files.videoFile, req.params.contentId, req.params.season, episode, req.user.id, video);
 });
 
 // delete for the entire content including all episodes if series fix later
