@@ -91,14 +91,15 @@ async function userSeries(res, userId) {
     const series = await query(
       `SELECT content.id, content.title AS series_title, content.thumbnail AS series_thumbnail,
        series_season.season, series_season.title AS season_title FROM content
-       JOIN series_season ON series_season.content_id = content.id WHERE content.uploader_id = ? AND content.type = "series"`,
+       LEFT OUTER JOIN series_season ON series_season.content_id = content.id WHERE content.uploader_id = ? AND content.type = "series"`,
       [userId]
     );
+    console.log(series)
     let obj = {};
     series.forEach((item) => {
       if (obj[item.id]) {
         obj[item.id].seasons.push({ season: item.season, title: item.season_title });
-      } else {
+      } else if(item.season && item.season_title){
         obj[item.id] = {
           contentId: item.id,
           title: item.series_title,
@@ -106,11 +107,20 @@ async function userSeries(res, userId) {
           seasons: [{ season: item.season, title: item.season_title }],
         };
       }
+      else {
+        obj[item.id] = {
+          contentId: item.id,
+          title: item.series_title,
+          thumbnail: item.series_thumbnail,
+          seasons: [],
+        };
+      }
     });
     const arr = [];
     Object.keys(obj).forEach((key) => {
       arr.push(obj[key]);
     });
+    console.log(arr)
     return res.send({ success: true, data: arr, error: null });
   } catch (error) {
     return res.send({ success: false, data: null, error: "Something went wrong please try again later" });
