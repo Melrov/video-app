@@ -55,16 +55,20 @@ function UploadVideoPage() {
         }
       }
     }
-    if (type === "video" || type === "movie" || type === "series") {
+    if (type === "video" || type === "movie") {
       let vid = document.getElementById("videoPlayerElement");
       const res = await createVideo(title, description, type, visibility, thumbnailFile.current.files[0], videoFile, vid.duration);
       resBack(res);
-    } else if (type === "season") {
-      const res = await createSeriesSeason(contentId, title, description);
+    } else if(type === "series"){
+      const res = await createVideo(title, description, type, visibility, thumbnailFile.current.files[0], videoFile, null);
+      resBack(res);
+    }
+    else if (type === "season") {
+      const res = await createSeriesSeason(contentId, title, description, thumbnailFile.current.files[0]);
       resBack(res);
     } else if (type === "episode") {
       let vid = document.getElementById("videoPlayerElement");
-      const res = await createSeriesEpisode(contentId, title, description, season, videoFile, vid.duration);
+      const res = await createSeriesEpisode(contentId, title, description, season, videoFile, vid.duration, recapChecked ? recapVal : null, introChecked ? introVal : null, outroChecked ? outroVal : null, nextPreviewChecked ? nextPreviewVal : null);
       resBack(res);
     }
   }, [
@@ -80,19 +84,27 @@ function UploadVideoPage() {
     season,
     createSeriesEpisode,
     createSeriesSeason,
+    recapChecked,
+    recapVal,
+    introChecked,
+    introVal,
+    outroChecked,
+    outroVal,
+    nextPreviewChecked,
+    nextPreviewVal
   ]);
 
   useEffect(() => {
     if (usersSeries) {
       const content = usersSeries.find((series) => series.contentId === contentId);
-      if (content) {
+      if (content && content.seasons.length > 0) {
         setSeason(content.seasons[0].season);
       }
     }
   }, [contentId, setSeason, usersSeries]);
 
   useEffect(() => {
-    if (usersSeries) {
+    if (usersSeries && usersSeries.length > 0) {
       setContentId(usersSeries[0].contentId);
     }
   }, [usersSeries, setContentId]);
@@ -122,7 +134,7 @@ function UploadVideoPage() {
   );
 
   return (
-    <div>
+    <div style={{color: "white"}}>
       {error && <span>{error}</span>}
       <form onSubmit={(e) => e.preventDefault()}>
         <select onChange={(e) => setType(e.target.value)}>
