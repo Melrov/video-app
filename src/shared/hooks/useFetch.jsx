@@ -161,12 +161,17 @@ function useFetch() {
    * @returns success, data{ contentId, season, episode }, error
    */
   const createSeriesEpisode = useCallback(
-    async (contentId, title, description, season, videoFile, duration) => {
+    async (contentId, title, description, season, videoFile, duration, recap, intro, outro, nextPreview) => {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("description", description);
       formData.append("videoFile", videoFile);
       formData.append("duration", duration);
+      if(recap) formData.append("recap", recap);
+      if(intro) formData.append("intro", intro);
+      if(outro) formData.append("outro", outro);
+      if(nextPreview) formData.append("nextPreview", nextPreview);
+      console.log('here')
       return await makeAPICall(`/api/video/episode/create/${season}/${contentId}`, {
         method: "put",
         headers: {
@@ -183,16 +188,21 @@ function useFetch() {
    * @param {string} contentId
    * @param {string} title
    * @param {string} description
+   * @param {string} thumbnail
    * @returns success, data{ contentId, season }, error
    */
   const createSeriesSeason = useCallback(
-    async (contentId, title, description) => {
+    async (contentId, title, description, thumbnail) => {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("thumbnail", thumbnail);
       return await makeAPICall(`/api/video/season/create/${contentId}`, {
         method: "put",
-        data: {
-          title,
-          description,
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
+        data: formData,
       });
     },
     [makeAPICall]
