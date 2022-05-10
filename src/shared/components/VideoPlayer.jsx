@@ -15,12 +15,13 @@ const Input = styled.input`
   background-image: linear-gradient(${(props) => props.theme.colors.accent} 100%, ${(props) => props.theme.colors.accent} 0%);
   background-size: 70% 100%;
   background-repeat: no-repeat;
+  cursor: pointer;
 
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
     height: 0px;
     width: 0px;
-    border-radius: 50%;
+    ${"" /* border-radius: 50%; */}
     background: ${(props) => props.theme.colors.accent};
     cursor: pointer;
     box-shadow: 0 0 2px 0 #555;
@@ -40,8 +41,8 @@ const InputContainer = styled.div`
   &:hover {
     ${Input} {
       &::-webkit-slider-thumb {
-        height: 15px;
-        width: 15px;
+        height: 0px;
+        width: 0px;
       }
     }
   }
@@ -91,6 +92,7 @@ const VideoPlayer = ({
   unmountSubmitWatchTime,
   videoSwitch,
 }) => {
+  const videoCon = useRef();
   const videoElement = useRef(null);
   const inputRef = useRef();
   const playBtn = useRef();
@@ -98,6 +100,8 @@ const VideoPlayer = ({
   const controlsRef = useRef();
   const volumeBtnRef = useRef();
   const fullscreen = useRef();
+  const settings = useRef();
+  const settingsBtn = useRef();
   const updateWatchTime = useCallback(() => {
     //console.log("callback setter");
     //submitWatchTime(videoId, season, episodeNum)
@@ -117,7 +121,8 @@ const VideoPlayer = ({
     fullscreenClick,
     reset,
     startLoading,
-  } = useVideoPlayer(videoElement, inputRef, playBtn, timeRef, controlsRef, volumeBtnRef, fullscreen, watchTime, updateWatchTime);
+    setSpeed,
+  } = useVideoPlayer(videoCon, videoElement, inputRef, playBtn, timeRef, controlsRef, volumeBtnRef, fullscreen, watchTime, updateWatchTime);
 
   useEffect(() => {
     reset();
@@ -138,9 +143,15 @@ const VideoPlayer = ({
     };
   }, []);
 
+  // Open settings
+  const settingsBtnClick = () => {
+    settings.current.classList.toggle("active");
+    settingsBtn.current.classList.toggle("active");
+  };
+
   return (
     <Theme>
-      <div className="video-wrapper">
+      <div className="video-wrapper" ref={videoCon}>
         <Video
           id="videoPlayerElement"
           src={file ? file : `/api/video/stream/${videoId}${episodeNum > 0 && season ? `/${season}/${episodeNum}` : ""}`}
@@ -155,6 +166,9 @@ const VideoPlayer = ({
           disablePictureInPicture={true}
           autoPlay={false}
           onWaiting={() => startLoading()}
+          onContextMenu={(e) => {
+            e.preventDefault();
+          }}
         />
         <div className="progressAreaTime" ref={timeRef}>
           0:00
@@ -165,7 +179,8 @@ const VideoPlayer = ({
             <Input
               type="range"
               min="0"
-              max="100"
+              step="1"
+              max={videoElement.current ? String(parseInt(videoElement.current.duration)) : null}
               value={isNaN(playerState.progress) ? 0 : playerState.progress}
               onChange={input.change}
               onMouseMove={input.mouseMove}
@@ -205,12 +220,11 @@ const VideoPlayer = ({
               </button>
             </div>
             <div className="actions-right">
-              <select className="velocity" value={playerState.speed} onChange={(e) => handleVideoSpeed(e)}>
-                <option value="0.50">0.50x</option>
-                <option value="1">1x</option>
-                <option value="1.25">1.25x</option>
-                <option value="2">2x</option>
-              </select>
+              <span class="icon">
+                <i class="material-icons settingsBtn" ref={settingsBtn} onClick={settingsBtnClick}>
+                  settings
+                </i>
+              </span>
               <button className="icon">
                 <i className="material-icons fullscreen" ref={fullscreen} onClick={fullscreenClick}>
                   fullscreen
@@ -219,6 +233,37 @@ const VideoPlayer = ({
             </div>
           </div>
         </Controls>
+        <div id="settings" ref={settings}>
+          <div class="playback">
+            <span>Playback Speed</span>
+            <ul>
+              <li onClick={() => setSpeed(0.25)} class={playerState.speed === 0.25 ? "active" : ""}>
+                0.25
+              </li>
+              <li onClick={() => setSpeed(0.5)} class={playerState.speed === 0.5 ? "active" : ""}>
+                0.5
+              </li>
+              <li onClick={() => setSpeed(0.75)} class={playerState.speed === 0.75 ? "active" : ""}>
+                0.75
+              </li>
+              <li onClick={() => setSpeed(1)} class={playerState.speed === 1 ? "active" : ""}>
+                Normal
+              </li>
+              <li onClick={() => setSpeed(1.25)} class={playerState.speed === 1.25 ? "active" : ""}>
+                1.25
+              </li>
+              <li onClick={() => setSpeed(1.5)} class={playerState.speed === 1.5 ? "active" : ""}>
+                1.5
+              </li>
+              <li onClick={() => setSpeed(1.75)} class={playerState.speed === 1.75 ? "active" : ""}>
+                1.75
+              </li>
+              <li onClick={() => setSpeed(2)} class={playerState.speed === 2 ? "active" : ""}>
+                2
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </Theme>
   );
