@@ -25,6 +25,11 @@ video {
   visibility: visible;
 }
 
+.icon {
+  display: flex;
+  align-items: center;
+}
+
 .controls {
   visibility: hidden;
   position: absolute;
@@ -111,7 +116,7 @@ video {
   position: absolute;
   left: var(--x);
   transform: translateX(-45%);
-  bottom: 57px;
+  bottom: 60px;
   min-width: 60px;
   text-align: center;
   white-space: nowrap;
@@ -123,7 +128,7 @@ video {
   z-index: 0;
   display: none;
 }
-.progressAreaTime::before {
+/* .progressAreaTime::before {
   content: "";
   position: absolute;
   bottom: -40%;
@@ -133,7 +138,7 @@ video {
   width: 15px;
   height: 15px;
   z-index: -1;
-}
+} */
 
 .volume_range {
   -webkit-appearance: none;
@@ -173,4 +178,82 @@ video {
 
 .hidden {
   display: none;
+}
+
+.velocity {
+  position: absolute;
+  right: 25px;
+  bottom: 62px;
+  background: rgb(28 28 28 / 90%);
+  width: 200px;
+  height: 250px;
+  color: #fff;
+  overflow-y: scroll;
+  z-index: 20;
+}
+
+.material-icons.settingsBtn {
+  font-size: 24px;
+  color: white;
+}
+
+#settings {
+  position: absolute;
+  right: 25px;
+  bottom: 62px;
+  background: rgb(28 28 28 / 90%);
+  width: 200px;
+  height: 250px;
+  color: #fff;
+  overflow-y: scroll;
+  z-index: 20;
+  display: none;
+}
+#settings.active {
+  display: block;
+}
+.playback span {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 15px 30px;
+  display: block;
+  border-bottom: 1px solid rgb(83, 83, 83);
+}
+.playback ul {
+  position: relative;
+  padding: 0;
+}
+.playback ul li {
+  position: relative;
+  /* width: 100%; */
+  cursor: pointer;
+  text-align: left;
+  padding: 12px 33px;
+  display: block;
+  font-size: 14px;
+}
+.playback ul li:hover {
+  background: rgba(28, 28, 28, 0.9);
+}
+
+.playback ul li.active::before {
+  content: "\e876";
+  font-family: "Material Icons";
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding-right: 10px;
+  font-size: 18px;
+}
+
+#settings::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+#settings::-webkit-scrollbar-thumb {
+  height: 20px;
+  border: 2px solid transparent;
+  background: rgba(83, 83, 83, 0.9);
+  border-radius: 20px;
 }
