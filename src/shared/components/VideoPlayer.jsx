@@ -220,8 +220,8 @@ const VideoPlayer = ({
               </button>
             </div>
             <div className="actions-right">
-              <span class="icon">
-                <i class="material-icons settingsBtn" ref={settingsBtn} onClick={settingsBtnClick}>
+              <span className="icon">
+                <i className="material-icons settingsBtn" ref={settingsBtn} onClick={settingsBtnClick}>
                   settings
                 </i>
               </span>
@@ -234,31 +234,31 @@ const VideoPlayer = ({
           </div>
         </Controls>
         <div id="settings" ref={settings}>
-          <div class="playback">
+          <div className="playback">
             <span>Playback Speed</span>
             <ul>
-              <li onClick={() => setSpeed(0.25)} class={playerState.speed === 0.25 ? "active" : ""}>
+              <li onClick={() => setSpeed(0.25)} className={playerState.speed === 0.25 ? "active" : ""}>
                 0.25
               </li>
-              <li onClick={() => setSpeed(0.5)} class={playerState.speed === 0.5 ? "active" : ""}>
+              <li onClick={() => setSpeed(0.5)} className={playerState.speed === 0.5 ? "active" : ""}>
                 0.5
               </li>
-              <li onClick={() => setSpeed(0.75)} class={playerState.speed === 0.75 ? "active" : ""}>
+              <li onClick={() => setSpeed(0.75)} className={playerState.speed === 0.75 ? "active" : ""}>
                 0.75
               </li>
-              <li onClick={() => setSpeed(1)} class={playerState.speed === 1 ? "active" : ""}>
+              <li onClick={() => setSpeed(1)} className={playerState.speed === 1 ? "active" : ""}>
                 Normal
               </li>
-              <li onClick={() => setSpeed(1.25)} class={playerState.speed === 1.25 ? "active" : ""}>
+              <li onClick={() => setSpeed(1.25)} className={playerState.speed === 1.25 ? "active" : ""}>
                 1.25
               </li>
-              <li onClick={() => setSpeed(1.5)} class={playerState.speed === 1.5 ? "active" : ""}>
+              <li onClick={() => setSpeed(1.5)} className={playerState.speed === 1.5 ? "active" : ""}>
                 1.5
               </li>
-              <li onClick={() => setSpeed(1.75)} class={playerState.speed === 1.75 ? "active" : ""}>
+              <li onClick={() => setSpeed(1.75)} className={playerState.speed === 1.75 ? "active" : ""}>
                 1.75
               </li>
-              <li onClick={() => setSpeed(2)} class={playerState.speed === 2 ? "active" : ""}>
+              <li onClick={() => setSpeed(2)} className={playerState.speed === 2 ? "active" : ""}>
                 2
               </li>
             </ul>
