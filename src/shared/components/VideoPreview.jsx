@@ -40,11 +40,11 @@ const PreviewCon = styled.div`
   align-items: ${(props) => (props.version === "carousel" ? "center" : "")};
   flex-basis: ${(props) => (props.version === "carousel" ? "20%" : "")};
   margin-left: ${(props) => (props.version === "carousel" ? "10px" : "")};
-  margin-rigth: ${(props) => (props.version === "carousel" ? "10px" : "")};
+  margin-right: ${(props) => (props.version === "carousel" ? "10px" : "")};
   &:hover {
     background: ${(props) => (props.selected ? "" : props.theme.colors.primaryLight)};
     box-shadow: ${(props) => (props.selected ? "" : "0px 0px 5px 0px black;")};
-  }
+  };
 `;
 
 function VideoPreview({ uuid, duration, episodes, title, username, views, uploadDate, type, version = "row", season, selected, click }) {
