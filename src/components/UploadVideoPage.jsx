@@ -19,7 +19,7 @@ const RightContainer = styled.div`
   flex-direction: column;
   max-width: 263px;
 `;
-const FormContainer = styled.form`
+const FormContainer = styled.div`
   display: flex;
 `;
 const InputCon = styled.div`
