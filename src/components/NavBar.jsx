@@ -46,7 +46,7 @@ const NavTitle = styled.h2`
   margin: 0px;
   margin-left: 10px;
   &:hover {
-    color: ${props => props.theme.colors.accent};
+    color: ${(props) => props.theme.colors.accent};
   }
 `;
 
@@ -111,7 +111,11 @@ function NavBar({ user, clearLoggedInUser }) {
                 </IconButton>
               </Tooltip>
             )}
-            {!user && <NavLink to="/login">Login</NavLink>}
+            {!user && (
+              <NavLink to="/login" style={({ isActive }) => (isActive ? activeStyle : nonActiveStyle)}>
+                <NavTitle>Login</NavTitle>
+              </NavLink>
+            )}
           </Box>
         </Box>
         <Menu
