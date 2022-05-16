@@ -68,47 +68,48 @@ function UploadVideoPage() {
   }, [userSeries]);
 
   const submit = useCallback(async () => {
-    function resBack(res) {
-      if (!res.success) {
-        setError(res.error);
-      } else {
-        if (type !== "series" && type !== "episode" && type !== "season") {
-          navigate(`/video/${res.data}`);
-        } else {
-          navigate(
-            `/series/${res.data.contentId ? res.data.contentId : res.data}${
-              res.data.season ? (res.data.episode ? "/" + res.data.season + "/" + res.data.episode : "/" + res.data.season) : ""
-            }`
-          );
-        }
-      }
-    }
-    if (type === "video" || type === "movie") {
-      let vid = document.getElementById("videoPlayerElement");
-      const res = await createVideo(title, description, type, visibility, thumbnailFile.current.files[0], videoFile, vid.duration);
-      resBack(res);
-    } else if (type === "series") {
-      const res = await createVideo(title, description, type, visibility, thumbnailFile.current.files[0], videoFile, null);
-      resBack(res);
-    } else if (type === "season") {
-      const res = await createSeriesSeason(contentId, title, description, thumbnailFile.current.files[0]);
-      resBack(res);
-    } else if (type === "episode") {
-      let vid = document.getElementById("videoPlayerElement");
-      const res = await createSeriesEpisode(
-        contentId,
-        title,
-        description,
-        season,
-        videoFile,
-        vid.duration,
-        recapChecked ? recapVal : null,
-        introChecked ? introVal : null,
-        outroChecked ? outroVal : null,
-        nextPreviewChecked ? nextPreviewVal : null
-      );
-      resBack(res);
-    }
+    setError("disabled in demo")
+    // function resBack(res) {
+    //   if (!res.success) {
+    //     setError(res.error);
+    //   } else {
+    //     if (type !== "series" && type !== "episode" && type !== "season") {
+    //       navigate(`/video/${res.data}`);
+    //     } else {
+    //       navigate(
+    //         `/series/${res.data.contentId ? res.data.contentId : res.data}${
+    //           res.data.season ? (res.data.episode ? "/" + res.data.season + "/" + res.data.episode : "/" + res.data.season) : ""
+    //         }`
+    //       );
+    //     }
+    //   }
+    // }
+    // if (type === "video" || type === "movie") {
+    //   let vid = document.getElementById("videoPlayerElement");
+    //   const res = await createVideo(title, description, type, visibility, thumbnailFile.current.files[0], videoFile, vid.duration);
+    //   resBack(res);
+    // } else if (type === "series") {
+    //   const res = await createVideo(title, description, type, visibility, thumbnailFile.current.files[0], videoFile, null);
+    //   resBack(res);
+    // } else if (type === "season") {
+    //   const res = await createSeriesSeason(contentId, title, description, thumbnailFile.current.files[0]);
+    //   resBack(res);
+    // } else if (type === "episode") {
+    //   let vid = document.getElementById("videoPlayerElement");
+    //   const res = await createSeriesEpisode(
+    //     contentId,
+    //     title,
+    //     description,
+    //     season,
+    //     videoFile,
+    //     vid.duration,
+    //     recapChecked ? recapVal : null,
+    //     introChecked ? introVal : null,
+    //     outroChecked ? outroVal : null,
+    //     nextPreviewChecked ? nextPreviewVal : null
+    //   );
+    //   resBack(res);
+    // }
   }, [
     createVideo,
     navigate,
@@ -367,7 +368,8 @@ function UploadVideoPage() {
                   <label htmlFor="thumbnail">Select Thumbnail</label>
                   <input required={true} type="file" name="thumbnail" accept="image/*" ref={thumbnailFile}></input>{" "}
                 </>
-                <button onClick={() => submit()}>Submit</button>
+                <button disabled onClick={() => submit()}>Submit</button>
+                <span>( disabled in demo )</span>
               </>
             )}
           </RightContainer>
