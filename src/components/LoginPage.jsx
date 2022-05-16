@@ -115,7 +115,7 @@ export const LoginPage = ({ setUser }) => {
           setFormError(res.error);
         } else {
           await setUser(res.data);
-          navigate("/upload");
+          navigate("/");
         }
       }
     },
