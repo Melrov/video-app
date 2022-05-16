@@ -7,6 +7,14 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import useFetch from "../shared/hooks/useFetch";
 import Theme from "./Theme";
 
+const OuterContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+const MainContainer = styled.div`
+  display: flex;
+  max-width: 1400px;
+`;
 const Container = styled.div`
   display: flex;
   margin: 10px;
@@ -94,53 +102,57 @@ function VideoPage() {
 
   return (
     <Theme>
-      <Container>
-        {error && <span>{error}</span>}
-        {data && (
-          <>
-            <LeftContainer>
-              <VideoContainer>
-                <VideoPlayer videoId={contentId} watchTime={data.watchTime} />
-              </VideoContainer>
-              <ContainerItem>
-                <VideoInfo
-                  title={data.title}
-                  uploadDate={data.uploadDate}
-                  views={data.views}
-                  username={data.username}
-                  tags={data.tags}
-                  likes={data.likes}
-                  dislikes={data.dislikes}
-                  description={data.description}
-                />
-              </ContainerItem>
-            </LeftContainer>
-            <RightContainer>
-              <ContainerItem>
-                {homeData && (
-                  <>
-                    {homeData.map((video) => {
-                      return (
-                        <VideoPreview
-                          key={video.id}
-                          title={video.title}
-                          type={video.type}
-                          uploadDate={video.uploadDate}
-                          views={video.views}
-                          version="row"
-                          uuid={video.id}
-                          duration={video.duration}
-                          username={video.username}
-                        />
-                      );
-                    })}
-                  </>
-                )}
-              </ContainerItem>
-            </RightContainer>
-          </>
-        )}
-      </Container>
+      <OuterContainer>
+        <MainContainer>
+          <Container>
+            {error && <span>{error}</span>}
+            {data && (
+              <>
+                <LeftContainer>
+                  <VideoContainer>
+                    <VideoPlayer videoId={contentId} watchTime={data.watchTime} />
+                  </VideoContainer>
+                  <ContainerItem>
+                    <VideoInfo
+                      title={data.title}
+                      uploadDate={data.uploadDate}
+                      views={data.views}
+                      username={data.username}
+                      tags={data.tags}
+                      likes={data.likes}
+                      dislikes={data.dislikes}
+                      description={data.description}
+                    />
+                  </ContainerItem>
+                </LeftContainer>
+                <RightContainer>
+                  <ContainerItem>
+                    {homeData && (
+                      <>
+                        {homeData.map((video) => {
+                          return (
+                            <VideoPreview
+                              key={video.id}
+                              title={video.title}
+                              type={video.type}
+                              uploadDate={video.uploadDate}
+                              views={video.views}
+                              version="row"
+                              uuid={video.id}
+                              duration={video.duration}
+                              username={video.username}
+                            />
+                          );
+                        })}
+                      </>
+                    )}
+                  </ContainerItem>
+                </RightContainer>
+              </>
+            )}
+          </Container>
+        </MainContainer>
+      </OuterContainer>
     </Theme>
   );
 }

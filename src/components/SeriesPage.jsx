@@ -7,9 +7,13 @@ import VideoPreview from "../shared/components/VideoPreview";
 import Carousel from "./Carousel";
 import Theme from "./Theme";
 
+const OuterContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`;
 const MainContainer = styled.div`
   display: flex;
-  max-width: 1200px;
+  max-width: 1400px;
 `;
 const LeftContainer = styled.div``;
 const RightContainer = styled.div`
@@ -116,21 +120,22 @@ function SeriesPage() {
   return (
     <Theme>
       {data && (
-        <MainContainer>
-          <LeftContainer>
-            <VideoContainer>
-              {contentId && season && episodeNum && data.seasons.length > 0 && data.seasons[0].episodes.length > 0 && (
-                <VideoPlayer
-                  videoId={contentId}
-                  episodeNum={isNaN(parseInt(episodeNum)) ? 0 : parseInt(episodeNum)}
-                  season={season}
-                  watchTime={data.seasons.find((seasonLoop) => seasonLoop.season === parseInt(season)).episodes[episodeNum - 1].watchTime}
-                />
-              )}
-            </VideoContainer>
-            <ContainerItem>
-              <ContainerTitle small={true}>Episodes</ContainerTitle>
-              {/* {data.seasons && data.seasons.length > 0 && (
+        <OuterContainer>
+          <MainContainer>
+            <LeftContainer>
+              <VideoContainer>
+                {contentId && season && episodeNum && data.seasons.length > 0 && data.seasons[0].episodes.length > 0 && (
+                  <VideoPlayer
+                    videoId={contentId}
+                    episodeNum={isNaN(parseInt(episodeNum)) ? 0 : parseInt(episodeNum)}
+                    season={season}
+                    watchTime={data.seasons.find((seasonLoop) => seasonLoop.season === parseInt(season)).episodes[episodeNum - 1].watchTime}
+                  />
+                )}
+              </VideoContainer>
+              <ContainerItem>
+                <ContainerTitle small={true}>Episodes</ContainerTitle>
+                {/* {data.seasons && data.seasons.length > 0 && (
                 <>
                   <label htmlFor="seasons">Select a season:</label>
                   <select name="seasons" onChange={(e) => setSelectedSeason(e.target.value)}>
@@ -140,63 +145,64 @@ function SeriesPage() {
                   </select>
                 </>
               )} */}
-              {currSeason && currSeason.episodes.length > 0 && (
-                <>
-                  {currSeason.episodes.map((episode, idx) => {
-                    return (
-                      <button key={"e" + idx} onClick={() => navigate(`/series/${contentId}/${selectedSeason}/${episode.episodeNumber}`)}>
-                        {episode.episodeNumber}
-                      </button>
-                    );
-                  })}
-                </>
-              )}
-              {currSeason && currSeason.episodes.length === 0 && (
-                <>
-                  <span>No episodes found</span>
-                </>
-              )}
-            </ContainerItem>
-            <CarouselBox>
-              <ContainerItem>
-                <ContainerTitle>Seasons</ContainerTitle>
-                {currSeason && <Carousel contentId={contentId} arr={data.seasons} selectedSeason={currSeason.season} click={click} />}
-              </ContainerItem>
-            </CarouselBox>
-            <ContainerItem>
-              <TitleContainer>
-                <TitleImage src={`/api/video/thumbnail/${contentId}`} alt={data.title} title={data.title} />
-                <div style={{ marginLeft: "10px" }}>
-                  <span>{data.title}</span>
-                  <p>{data.description}</p>
-                </div>
-              </TitleContainer>
-            </ContainerItem>
-          </LeftContainer>
-          <RightContainer>
-            <SeasonSide>
-              <ContainerItem>
-                <ContainerTitle>Seasons</ContainerTitle>
-                {currSeason && data.seasons && data.seasons.length > 0 && (
+                {currSeason && currSeason.episodes.length > 0 && (
                   <>
-                    {data.seasons.map((season, idx) => (
-                      <VideoPreview
-                        key={"rs" + idx}
-                        uuid={contentId}
-                        title={season.title}
-                        season={season.season}
-                        episodes={season.episodes.length}
-                        type={"series"}
-                        selected={currSeason.season === season.season}
-                        click={click}
-                      />
-                    ))}
+                    {currSeason.episodes.map((episode, idx) => {
+                      return (
+                        <button key={"e" + idx} onClick={() => navigate(`/series/${contentId}/${selectedSeason}/${episode.episodeNumber}`)}>
+                          {episode.episodeNumber}
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
+                {currSeason && currSeason.episodes.length === 0 && (
+                  <>
+                    <span>No episodes found</span>
                   </>
                 )}
               </ContainerItem>
-            </SeasonSide>
-          </RightContainer>
-        </MainContainer>
+              <CarouselBox>
+                <ContainerItem>
+                  <ContainerTitle>Seasons</ContainerTitle>
+                  {currSeason && <Carousel contentId={contentId} arr={data.seasons} selectedSeason={currSeason.season} click={click} />}
+                </ContainerItem>
+              </CarouselBox>
+              <ContainerItem>
+                <TitleContainer>
+                  <TitleImage src={`/api/video/thumbnail/${contentId}`} alt={data.title} title={data.title} />
+                  <div style={{ marginLeft: "10px" }}>
+                    <span>{data.title}</span>
+                    <p>{data.description}</p>
+                  </div>
+                </TitleContainer>
+              </ContainerItem>
+            </LeftContainer>
+            <RightContainer>
+              <SeasonSide>
+                <ContainerItem>
+                  <ContainerTitle>Seasons</ContainerTitle>
+                  {currSeason && data.seasons && data.seasons.length > 0 && (
+                    <>
+                      {data.seasons.map((season, idx) => (
+                        <VideoPreview
+                          key={"rs" + idx}
+                          uuid={contentId}
+                          title={season.title}
+                          season={season.season}
+                          episodes={season.episodes.length}
+                          type={"series"}
+                          selected={currSeason.season === season.season}
+                          click={click}
+                        />
+                      ))}
+                    </>
+                  )}
+                </ContainerItem>
+              </SeasonSide>
+            </RightContainer>
+          </MainContainer>
+        </OuterContainer>
       )}
     </Theme>
   );
