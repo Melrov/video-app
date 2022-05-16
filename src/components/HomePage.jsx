@@ -1,8 +1,7 @@
 import React, { useContext, useEffect } from "react";
-import VideoPreview from "./Reusable/VideoPreview";
+import VideoPreview from "../shared/components/VideoPreview";
 import styled from "styled-components";
 import { VideosContext } from "../context/VideosContext";
-import { UserContext } from "../context/UserContext";
 
 const VideosCon = styled.div`
   display: flex;
@@ -11,13 +10,20 @@ const VideosCon = styled.div`
   padding: 10px;
 `;
 
+const ContainerItem = styled.div`
+  background-color: #24272c;
+  color: white;
+  margin: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+`;
+
 function HomePage() {
-  const {videos, error, refresh} = useContext(VideosContext)
-  const { user } = useContext(UserContext)
+  const { videos, error, refresh } = useContext(VideosContext);
 
   useEffect(() => {
-    refresh()
-  }, [refresh, user]);
+    refresh();
+  }, []);
 
   return (
     <div>
@@ -26,17 +32,18 @@ function HomePage() {
         <VideosCon>
           {videos.map((video) => {
             return (
-              <VideoPreview
-                key={video.id}
-                uuid={video.id}
-                thumbnail={"/thumbnail.png"}
-                tooltip={video.duration}
-                title={video.title}
-                username={video.username}
-                views={video.views}
-                uploadDate={video.uploadDate}
-                version="home"
-              />
+              <ContainerItem key={video.id}>
+                <VideoPreview
+                  uuid={video.id}
+                  type={video.type}
+                  duration={video.duration}
+                  title={video.title}
+                  username={video.username}
+                  views={video.views}
+                  uploadDate={video.uploadDate}
+                  version="home"
+                />
+              </ContainerItem>
             );
           })}
         </VideosCon>

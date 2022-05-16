@@ -1,9 +1,8 @@
 const query = require("../config/mysql.config");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { v4: uuidv4 } = require("uuid");
 const { filterUserVideos } = require("../functions/video.functions");
-const { checkUuidAvailability } = require("../functions/uuid.functions")
+const { generateUuid } = require("../functions/uuid.functions");
 
 async function login(res, username, password) {
   try {
@@ -54,11 +53,8 @@ async function signup(res, username, password) {
       });
     }
     const hash = await bcrypt.hash(password, 10);
-    let uuid;
-    do {
-        uuid = uuidv4();
-    } while (!checkUuidAvailability(uuid));
-    
+    const uuid = generateUuid("user");
+
     await query("INSERT INTO users (id, username, password) VALUE (?, ?, ?)", [uuid, username, hash]);
     return res.send({ success: true, data: null, error: null });
   } catch (error) {
@@ -73,10 +69,10 @@ async function signup(res, username, password) {
 
 async function videosByUserId(res, userId, requesterId) {
   try {
-      const [user] = await query("SELECT users.username FROM users WHERE users.id = ?", [userId])
-      if(!user){
-          return res.send({success: false, data: null, error: "No user found"})
-      }
+    const [user] = await query("SELECT users.username FROM users WHERE users.id = ?", [userId]);
+    if (!user) {
+      return res.send({ success: false, data: null, error: "No user found" });
+    }
     const videos = await query(
       `SELECT content.id, content.type, content.title, content.upload_date, content.views,
        content.uploader_id, content.duration, content.visibility, content.thumbnail, users.username
@@ -90,4 +86,45 @@ async function videosByUserId(res, userId, requesterId) {
   }
 }
 
-module.exports = { login, signup, videosByUserId };
+async function userSeries(res, userId) {
+  try {
+    const series = await query(
+      `SELECT content.id, content.title AS series_title, content.thumbnail AS series_thumbnail,
+       series_season.season, series_season.title AS season_title FROM content
+       LEFT OUTER JOIN series_season ON series_season.content_id = content.id WHERE content.uploader_id = ? AND content.type = "series"`,
+      [userId]
+    );
+    console.log(series)
+    let obj = {};
+    series.forEach((item) => {
+      if (obj[item.id]) {
+        obj[item.id].seasons.push({ season: item.season, title: item.season_title });
+      } else if(item.season && item.season_title){
+        obj[item.id] = {
+          contentId: item.id,
+          title: item.series_title,
+          thumbnail: item.series_thumbnail,
+          seasons: [{ season: item.season, title: item.season_title }],
+        };
+      }
+      else {
+        obj[item.id] = {
+          contentId: item.id,
+          title: item.series_title,
+          thumbnail: item.series_thumbnail,
+          seasons: [],
+        };
+      }
+    });
+    const arr = [];
+    Object.keys(obj).forEach((key) => {
+      arr.push(obj[key]);
+    });
+    console.log(arr)
+    return res.send({ success: true, data: arr, error: null });
+  } catch (error) {
+    return res.send({ success: false, data: null, error: "Something went wrong please try again later" });
+  }
+}
+
+module.exports = { login, signup, videosByUserId, userSeries };

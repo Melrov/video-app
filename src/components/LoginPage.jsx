@@ -1,12 +1,14 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { UserContext } from "../context/UserContext";
-import useFetch from "../hooks/useFetch";
+import { useCallback, useEffect, useState } from "react";
+import { connect } from "react-redux";
+import { setUser } from "../redux/actions/user.actions";
+import { useLocation, useNavigate } from "react-router-dom";
+import useFetch from "../shared/hooks/useFetch";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import styled from "styled-components";
+import Theme from "./Theme";
 
 const Con = styled.div`
   display: flex;
@@ -14,9 +16,10 @@ const Con = styled.div`
   justify-content: center;
   position: relative;
   top: 22vh;
+  color: ${(props) => props.theme.text.primary};
 `;
 const Form = styled.form`
-  background-color: #cdd6d0;
+  background: ${(props) => props.theme.colors.secondaryLight};
   border-radius: 15px;
   padding: 25px;
   display: flex;
@@ -26,6 +29,7 @@ const Form = styled.form`
 const InputCon = styled.div`
   margin-bottom: 15px;
   height: 75px;
+  color: white !important;
 `;
 const CheckBoxCon = styled.div`
   position: relative;
@@ -35,31 +39,42 @@ const Header = styled.h2`
   margin-left: auto;
   margin-right: auto;
 `;
-const SubmitButton = styled(Button)({
-  backgroundColor: "#D6A99A",
+
+const SubmitButton = styled(Button)(({ theme }) => ({
   marginBottom: "5px !important",
   "&:hover": {
-    backgroundColor: "#E16036",
+    backgroundColor: "#2fc6dc",
   },
-});
+}));
+
 const Error = styled.p`
   color: rgb(255 151 151);
-  background: rgb(201 22 22 / 85%);
+  background: rgb(201 22 22 / 36%);
   border: 1px solid rgb(239 45 45);
   padding: 6px;
   border-radius: 5px;
+  text-align: center;
 `;
 const Register = styled.span`
   margin: 8px;
   cursor: pointer;
-  color: rgb(205 66 20 / 73%);
+  color: ${(props) => props.theme.text.accentDark};
   &:hover {
-    color: rgb(205 66 20 / 100%);
+    color: ${(props) => props.theme.text.accent};
+    text-decoration: underline;
   }
 `;
+const Message = styled.span`
+  color: ${(props) => props.theme.text.accentDark};
+  background: ${(props) => props.theme.colors.secondary};
+  border: 1px solid ${(props) => props.theme.colors.accent};
+  padding: 6px;
+  border-radius: 5px;
+  text-align: center;
+`;
 
-function LoginPage() {
-  const { setLoggedInUser } = useContext(UserContext);
+export const LoginPage = ({ setUser }) => {
+  const { state } = useLocation();
   const { login: apiLogin } = useFetch();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -99,53 +114,85 @@ function LoginPage() {
         if (!res.success) {
           setFormError(res.error);
         } else {
-          await setLoggedInUser(res.data);
-          navigate('/upload')
+          await setUser(res.data);
+          navigate("/");
         }
       }
     },
-    [username, password, uError, pError, apiLogin, navigate, setLoggedInUser]
+    [username, password, uError, pError, apiLogin, navigate, setUser]
   );
 
   return (
-    <Con>
-      <Form onSubmit={login}>
-        {formError && <Error>{formError}</Error>}
-        <Header>Login</Header>
-        <InputCon>
-          <TextField
-            style={{ width: "250px" }}
-            error={showError && !!uError}
-            label="Username"
-            value={username}
-            helperText={showError ? uError : ""}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </InputCon>
-        <InputCon>
-          <TextField
-            style={{ width: "250px" }}
-            error={showError && !!pError}
-            type="password"
-            label="Password"
-            value={password}
-            helperText={showError ? pError : ""}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </InputCon>
+    <Theme>
+      <Con>
+        <Form onSubmit={login}>
+          {formError && <Error>{formError}</Error>}
+          {state && !formError && state.message && <Message>{state.message}</Message>}
+          <Header>Login</Header>
+          <InputCon>
+            <TextField
+              color="primary"
+              sx={{
+                input: { color: "rgb(255,255,255)" },
+                width: "260px",
+                "& .MuiInputLabel-root": { color: "rgb(255,255,255)" },
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "rgba(255,255,255,1)",
+                  },
+                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.6)" },
+                },
+              }}
+              error={showError && !!uError}
+              label="Username"
+              value={username}
+              helperText={showError ? uError : ""}
+              onChange={(e) => setUsername(e.target.value)}
+              variant={"outlined"}
+            />
+          </InputCon>
+          <InputCon>
+            <TextField
+              color="primary"
+              sx={{
+                input: { color: "rgb(255,255,255)" },
+                width: "260px",
+                "& .MuiInputLabel-root": { color: "rgb(255,255,255)" },
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "rgba(255,255,255,1)",
+                  },
+                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.6)" },
+                },
+              }}
+              error={showError && !!pError}
+              type="password"
+              label="Password"
+              value={password}
+              helperText={showError ? pError : ""}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </InputCon>
 
-        <CheckBoxCon>
-          <FormControlLabel control={<Checkbox />} label="Remember Me" />
-        </CheckBoxCon>
-        <SubmitButton variant="contained" type="submit">
-          Login
-        </SubmitButton>
-        <p>
-          Don't have an account? <Register onClick={() => navigate("/signup")}>Register</Register>
-        </p>
-      </Form>
-    </Con>
+          {/* <CheckBoxCon>
+            <FormControlLabel control={<Checkbox />} label="Remember Me" />
+          </CheckBoxCon> */}
+          <SubmitButton variant="contained" type="submit">
+            Login
+          </SubmitButton>
+          <p>
+            Don't have an account? <Register onClick={() => navigate("/signup")}>Register</Register>
+          </p>
+        </Form>
+      </Con>
+    </Theme>
   );
-}
+};
 
-export default LoginPage;
+const mapStateToProps = (state) => ({});
+
+const mapDispatchToProps = {
+  setUser: setUser,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginPage);

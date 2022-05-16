@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import useFetch from "../hooks/useFetch";
+import useFetch from "../shared/hooks/useFetch";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import Theme from "./Theme";
 
 const Con = styled.div`
   display: flex;
@@ -11,9 +12,10 @@ const Con = styled.div`
   justify-content: center;
   position: relative;
   top: 22vh;
+  color: ${(props) => props.theme.text.primary};
 `;
 const Form = styled.form`
-  background-color: #cdd6d0;
+  background: ${(props) => props.theme.colors.secondaryLight};
   border-radius: 15px;
   padding: 25px;
   display: flex;
@@ -23,42 +25,48 @@ const Form = styled.form`
 const InputCon = styled.div`
   margin-bottom: 15px;
   height: 75px;
+  color: white !important;
 `;
+
 const Header = styled.h2`
   margin-left: auto;
   margin-right: auto;
 `;
-const SubmitButton = styled(Button)({
-  backgroundColor: "#D6A99A",
+
+const SubmitButton = styled(Button)(({ theme }) => ({
+  marginBottom: "5px !important",
   "&:hover": {
-    backgroundColor: "#E16036",
+    backgroundColor: "#2fc6dc",
   },
-});
+}));
+
 const Error = styled.p`
   color: rgb(255 151 151);
-  background: rgb(201 22 22 / 85%);
+  background: rgb(201 22 22 / 36%);
   border: 1px solid rgb(239 45 45);
   padding: 6px;
   border-radius: 5px;
+  text-align: center;
 `;
 const Register = styled.span`
   margin: 8px;
   cursor: pointer;
-  color: rgb(205 66 20 / 73%);
+  color: ${(props) => props.theme.text.accentDark};
   &:hover {
-    color: rgb(205 66 20 / 100%);
+    color: ${(props) => props.theme.text.accent};
+    text-decoration: underline;
   }
 `;
 
 function SignupPage() {
-  const { signup: apiSignup } = useFetch()
+  const { signup: apiSignup } = useFetch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [uError, setUError] = useState(null);
   const [pError, setPError] = useState(null);
   const [rpError, setRpError] = useState(null);
-  const [formError, setFormError] = useState(null)
+  const [formError, setFormError] = useState(null);
   const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
 
@@ -98,7 +106,7 @@ function SignupPage() {
       } else {
         const res = await apiSignup(username, password);
         if (res.success) {
-          navigate("/login");
+          navigate("/login", { state: { message: "Account Created Please Sign In" } });
         } else {
           setShowError(true);
           setFormError(res.error);
@@ -109,52 +117,84 @@ function SignupPage() {
   );
 
   return (
-    <Con>
-      <Form onSubmit={signup}>
-        {formError && <Error>{formError}</Error>}
-        <Header>Sign Up</Header>
-        <InputCon>
-          <TextField
-            style={{ width: "250px" }}
-            error={showError && !!uError}
-            label="Username"
-            value={username}
-            helperText={showError ? uError : ""}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </InputCon>
-        <InputCon>
-          <TextField
-            style={{ width: "250px" }}
-            error={showError && !!pError}
-            type="password"
-            label="Password"
-            value={password}
-            helperText={showError ? pError : ""}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </InputCon>
+    <Theme>
+      <Con>
+        <Form onSubmit={signup}>
+          {formError && <Error>{formError}</Error>}
+          <Header>Sign Up</Header>
+          <InputCon>
+            <TextField
+              sx={{
+                input: { color: "rgb(255,255,255)" },
+                width: "260px",
+                "& .MuiInputLabel-root": { color: "rgb(255,255,255)" },
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "rgba(255,255,255,1)",
+                  },
+                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.6)" },
+                },
+              }}
+              error={showError && !!uError}
+              label="Username"
+              value={username}
+              helperText={showError ? uError : ""}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </InputCon>
+          <InputCon>
+            <TextField
+              sx={{
+                input: { color: "rgb(255,255,255)" },
+                width: "260px",
+                "& .MuiInputLabel-root": { color: "rgb(255,255,255)" },
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "rgba(255,255,255,1)",
+                  },
+                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.6)" },
+                },
+              }}
+              error={showError && !!pError}
+              type="password"
+              label="Password"
+              value={password}
+              helperText={showError ? pError : ""}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </InputCon>
 
-        <InputCon>
-          <TextField
-            style={{ width: "250px" }}
-            error={!!rpError}
-            type="password"
-            label="Repeat your password"
-            value={repeatPassword}
-            helperText={!!rpError ? rpError : ""}
-            onChange={(e) => setRepeatPassword(e.target.value)}
-          />
-        </InputCon>
+          <InputCon>
+            <TextField
+              sx={{
+                input: { color: "rgb(255,255,255)" },
+                width: "260px",
+                "& .MuiInputLabel-root": { color: "rgb(255,255,255)" },
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "rgba(255,255,255,1)",
+                  },
+                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.6)" },
+                },
+              }}
+              error={!!rpError}
+              type="password"
+              label="Repeat your password"
+              value={repeatPassword}
+              helperText={!!rpError ? rpError : ""}
+              onChange={(e) => setRepeatPassword(e.target.value)}
+            />
+          </InputCon>
 
-        <SubmitButton variant="contained" type="submit">
-          Sign Up
-        </SubmitButton>
-        <p>
-          Already have an account? <Register onClick={() => navigate("/login")}>Sign in</Register>
-        </p>
-      </Form>
-    </Con>
+          <SubmitButton variant="contained" type="submit">
+            Sign Up
+          </SubmitButton>
+          <p>
+            Already have an account? <Register onClick={() => navigate("/login")}>Sign in</Register>
+          </p>
+        </Form>
+      </Con>
+    </Theme>
   );
 }
 
