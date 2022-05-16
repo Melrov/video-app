@@ -8,14 +8,17 @@ import SignupPage from "./components/SignupPage";
 import VideoPage from "./components/VideoPage";
 import UploadVideoPage from "./components/UploadVideoPage";
 import ProtectedRoutes from "./components/ProtectedRoutes";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import useFetch from "./shared/hooks/useFetch";
 import SeriesPage from "./components/SeriesPage.jsx";
 import { setUser } from "./redux/actions/user.actions";
+import { VideosContext } from "./context/VideosContext";
 
-function App({ setUser }) {
+function App({ setUser, user }) {
+  const { refresh } = useContext(VideosContext)
   const [loading, setLoading] = useState(true);
   const { verify } = useFetch();
+
   useEffect(() => {
     async function init() {
       const res = await verify();
@@ -26,6 +29,11 @@ function App({ setUser }) {
     }
     init();
   }, [setUser, verify]);
+
+  useEffect(() => {
+    refresh()
+  }, [user])
+
   return (
     <>
       {!loading && (
@@ -68,7 +76,9 @@ function App({ setUser }) {
   );
 }
 
-const mapStateToProps = (state) => ({});
+const mapStateToProps = (state) => ({
+  user: state.user.user
+});
 
 const mapDispatchToProps = {
   setUser,
