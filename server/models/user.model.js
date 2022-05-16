@@ -94,7 +94,7 @@ async function userSeries(res, userId) {
        LEFT OUTER JOIN series_season ON series_season.content_id = content.id WHERE content.uploader_id = ? AND content.type = "series"`,
       [userId]
     );
-    console.log(series)
+    //console.log(series)
     let obj = {};
     series.forEach((item) => {
       if (obj[item.id]) {
@@ -120,7 +120,7 @@ async function userSeries(res, userId) {
     Object.keys(obj).forEach((key) => {
       arr.push(obj[key]);
     });
-    console.log(arr)
+    //console.log(arr)
     return res.send({ success: true, data: arr, error: null });
   } catch (error) {
     return res.send({ success: false, data: null, error: "Something went wrong please try again later" });

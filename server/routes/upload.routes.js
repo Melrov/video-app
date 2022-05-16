@@ -6,7 +6,7 @@ const router = require("express").Router()
 
 //50 * 1024 * 1024 is 50 mb
 router.post('/', function(req, res) {
-    console.log(req.files.sampleFile)
+    //console.log(req.files.sampleFile)
     let sampleFile;
     let uploadPath;
   
