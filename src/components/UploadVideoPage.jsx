@@ -2,6 +2,34 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useFetch from "../shared/hooks/useFetch";
 import VideoPlayer from "../shared/components/VideoPlayer";
+import styled from "styled-components";
+
+const MainContainer = styled.div`
+  color: white;
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+`;
+const LeftContainer = styled.div`
+  margin: 10px 10px 10px 0px;
+`;
+const RightContainer = styled.div`
+  margin: 10px 0px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  max-width: 263px;
+`;
+const FormContainer = styled.form`
+  display: flex;
+`;
+const InputCon = styled.div`
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+`;
+const InputElement = styled.input`
+
+`
 
 function UploadVideoPage() {
   const { createVideo, createSeriesSeason, createSeriesEpisode, userSeries } = useFetch();
@@ -9,7 +37,7 @@ function UploadVideoPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState("public");
-  const [type, setType] = useState("");
+  const [type, setType] = useState(null);
   const [contentId, setContentId] = useState(null);
   const [season, setSeason] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
@@ -59,16 +87,26 @@ function UploadVideoPage() {
       let vid = document.getElementById("videoPlayerElement");
       const res = await createVideo(title, description, type, visibility, thumbnailFile.current.files[0], videoFile, vid.duration);
       resBack(res);
-    } else if(type === "series"){
+    } else if (type === "series") {
       const res = await createVideo(title, description, type, visibility, thumbnailFile.current.files[0], videoFile, null);
       resBack(res);
-    }
-    else if (type === "season") {
+    } else if (type === "season") {
       const res = await createSeriesSeason(contentId, title, description, thumbnailFile.current.files[0]);
       resBack(res);
     } else if (type === "episode") {
       let vid = document.getElementById("videoPlayerElement");
-      const res = await createSeriesEpisode(contentId, title, description, season, videoFile, vid.duration, recapChecked ? recapVal : null, introChecked ? introVal : null, outroChecked ? outroVal : null, nextPreviewChecked ? nextPreviewVal : null);
+      const res = await createSeriesEpisode(
+        contentId,
+        title,
+        description,
+        season,
+        videoFile,
+        vid.duration,
+        recapChecked ? recapVal : null,
+        introChecked ? introVal : null,
+        outroChecked ? outroVal : null,
+        nextPreviewChecked ? nextPreviewVal : null
+      );
       resBack(res);
     }
   }, [
@@ -91,7 +129,7 @@ function UploadVideoPage() {
     outroChecked,
     outroVal,
     nextPreviewChecked,
-    nextPreviewVal
+    nextPreviewVal,
   ]);
 
   useEffect(() => {
@@ -134,195 +172,208 @@ function UploadVideoPage() {
   );
 
   return (
-    <div style={{color: "white"}}>
+    <MainContainer>
       {error && <span>{error}</span>}
       <form onSubmit={(e) => e.preventDefault()}>
         <select onChange={(e) => setType(e.target.value)}>
-          <option>Select a type</option>
+          <option value={null}>Select a type</option>
           <option value={"video"}>Video</option>
           <option value={"movie"}>Movie</option>
           <option value={"series"}>Series</option>
           <option value={"season"}>Series season</option>
           <option value={"episode"}>Series episode</option>
         </select>
-        {type && (
-          <>
-            <label htmlFor="title">Title</label>
-            <input required={true} type="text" name="title" onChange={(e) => setTitle(e.target.value)}></input>
-            <label htmlFor="description">description</label>
-            <input required={true} type="text" name="description" onChange={(e) => setDescription(e.target.value)}></input>
-            {(type === "video" || type === "movie" || type === "series") && (
+        <FormContainer>
+          {(type === "video" || type === "movie" || type === "episode") && (
+            <LeftContainer>
+              <VideoPlayer file={blobUrl} />
+              <label htmlFor="video">Select Video</label>
+              <input required={true} type="file" name="video" accept="video/*" onChange={(e) => setVideoFile(e.target.files[0])}></input>
+
+              {blobUrl && type === "episode" && (
+                <>
+                  <label htmlFor="recapCheck">Recap</label>
+                  <input name="recapCheck" type="checkbox" checked={recapChecked} onChange={(e) => setRecapChecked(e.target.checked)} />
+                  {recapChecked && (
+                    <>
+                      <label htmlFor="recapStart">Start of recap</label>
+                      <input
+                        name="recapStart"
+                        type="number"
+                        min={0}
+                        max={recapVal[1]}
+                        value={recapVal[0]}
+                        onChange={(e) => setRecapVal((curr) => [e.target.value, curr[1]])}
+                      />
+                      <button onClick={() => setToCurrentTime(setRecapVal, 0)}>Set to current time</button>
+                      <label htmlFor="recapEnd">End of recap</label>
+                      <input
+                        name="recapEnd"
+                        type="number"
+                        min={recapVal[0]}
+                        max={document.getElementById("videoPlayerElement").duration}
+                        value={recapVal[1]}
+                        onChange={(e) => setRecapVal((curr) => [curr[0], e.target.value])}
+                      />
+                      <button onClick={() => setToCurrentTime(setRecapVal, 1)}>Set to current time</button>
+                    </>
+                  )}
+                  <label htmlFor="introCheck">Intro</label>
+                  <input name="introCheck" type="checkbox" checked={introChecked} onChange={(e) => setIntroChecked(e.target.checked)} />
+                  {introChecked && (
+                    <>
+                      <label htmlFor="introStart">Start of intro</label>
+                      <input
+                        name="introStart"
+                        type="number"
+                        min={0}
+                        max={introVal[1]}
+                        value={introVal[0]}
+                        onChange={(e) => setIntroVal((curr) => [e.target.value, curr[1]])}
+                      />
+                      <button onClick={() => setToCurrentTime(setIntroVal, 0)}>Set to current time</button>
+                      <label htmlFor="introEnd">End of intro</label>
+                      <input
+                        name="introEnd"
+                        type="number"
+                        min={introVal[0]}
+                        max={document.getElementById("videoPlayerElement").duration}
+                        value={introVal[1]}
+                        onChange={(e) => setIntroVal((curr) => [curr[0], e.target.value])}
+                      />
+                      <button onClick={() => setToCurrentTime(setIntroVal, 1)}>Set to current time</button>
+                    </>
+                  )}
+                  <label htmlFor="outroCheck">Outro</label>
+                  <input name="outroCheck" type="checkbox" checked={outroChecked} onChange={(e) => setOutroChecked(e.target.checked)} />
+                  {outroChecked && (
+                    <>
+                      <label htmlFor="outroStart">Start of outro</label>
+                      <input
+                        name="outroStart"
+                        type="number"
+                        min={0}
+                        max={outroVal[1]}
+                        value={outroVal[0]}
+                        onChange={(e) => setOutroVal((curr) => [e.target.value, curr[1]])}
+                      />
+                      <button onClick={() => setToCurrentTime(setOutroVal, 0)}>Set to current time</button>
+                      <label htmlFor="outroEnd">End of outro</label>
+                      <input
+                        name="outroEnd"
+                        type="number"
+                        min={outroVal[0]}
+                        max={document.getElementById("videoPlayerElement").duration}
+                        value={outroVal[1]}
+                        onChange={(e) => setOutroVal((curr) => [curr[0], e.target.value])}
+                      />
+                      <button onClick={() => setToCurrentTime(setOutroVal, 1)}>Set to current time</button>
+                    </>
+                  )}
+                  <label htmlFor="nextPreviewCheck">Next Preview</label>
+                  <input
+                    name="nextPreviewCheck"
+                    type="checkbox"
+                    checked={nextPreviewChecked}
+                    onChange={(e) => setNextPreviewChecked(e.target.checked)}
+                  />
+                  {nextPreviewChecked && (
+                    <>
+                      <label htmlFor="nextPreviewStart">Start of next preview</label>
+                      <input
+                        name="nextPreviewStart"
+                        type="number"
+                        min={0}
+                        max={nextPreviewVal[1]}
+                        value={nextPreviewVal[0]}
+                        onChange={(e) => setNextPreviewVal((curr) => [e.target.value, curr[1]])}
+                      />
+                      <button onClick={() => setToCurrentTime(setNextPreviewVal, 0)}>Set to current time</button>
+                      <label htmlFor="nextPreviewEnd">End of next preview</label>
+                      <input
+                        name="nextPreviewEnd"
+                        type="number"
+                        min={nextPreviewVal[0]}
+                        max={document.getElementById("videoPlayerElement").duration}
+                        value={nextPreviewVal[1]}
+                        onChange={(e) => setNextPreviewVal((curr) => [curr[0], e.target.value])}
+                      />
+                      <button onClick={() => setToCurrentTime(setNextPreviewVal, 1)}>Set to current time</button>
+                    </>
+                  )}
+                </>
+              )}
+            </LeftContainer>
+          )}
+          <RightContainer>
+            {type && type !== "Select a type" && (
               <>
-                <label htmlFor="visibility">What type is it</label>
-                <select required={true} name="visibility" onChange={(e) => setVisibility(e.target.value)}>
-                  <option value="public">public</option>
-                  <option value="unlisted">unlisted</option>
-                  <option value="private">private</option>
-                </select>
-              </>
-            )}
-            {(type === "episode" || type === "season") && (
-              <>
-                <label htmlFor="seriesSelect">Pick a Series</label>
-                <select required={true} name="seriesSelect" onChange={(e) => setContentId(e.target.value)}>
-                  {usersSeries.map((series) => {
-                    return (
-                      <option
-                        key={series.contentId}
-                        value={series.contentId}
-                      >{`${series.title} - [${series.seasons.length}] seasons`}</option>
-                    );
-                  })}
-                </select>
-              </>
-            )}
-            {type === "episode" && contentId && (
-              <>
-                <label htmlFor="seasonSelect">Pick a Season</label>
-                <select required={true} name="seasonSelect" onChange={(e) => setSeason(e.target.value)}>
-                  {usersSeries
-                    .find((series) => series.contentId === contentId)
-                    .seasons.map((season) => {
-                      return (
-                        <option key={season.season} value={season.season}>
-                          {season.title}
-                        </option>
-                      );
-                    })}
-                </select>
-              </>
-            )}
-            {(type === "video" || type === "movie" || type === "episode") && (
-              <>
-                <label htmlFor="video">Select Video</label>
-                <input required={true} type="file" name="video" accept="video/*" onChange={(e) => setVideoFile(e.target.files[0])}></input>
-                <VideoPlayer file={blobUrl} />
-                {blobUrl && (
+                <InputCon>
+                  <label htmlFor="title">Title</label>
+                  <input required={true} type="text" name="title" onChange={(e) => setTitle(e.target.value)}></input>
+                </InputCon>
+                <InputCon>
+                  <label htmlFor="description">description</label>
+                  <input required={true} type="text" name="description" onChange={(e) => setDescription(e.target.value)}></input>
+                </InputCon>
+                {(type === "video" || type === "movie" || type === "series") && (
                   <>
-                    <label htmlFor="recapCheck">Recap</label>
-                    <input name="recapCheck" type="checkbox" checked={recapChecked} onChange={(e) => setRecapChecked(e.target.checked)} />
-                    {recapChecked && (
-                      <>
-                        <label htmlFor="recapStart">Start of recap</label>
-                        <input
-                          name="recapStart"
-                          type="number"
-                          min={0}
-                          max={recapVal[1]}
-                          value={recapVal[0]}
-                          onChange={(e) => setRecapVal((curr) => [e.target.value, curr[1]])}
-                        />
-                        <button onClick={() => setToCurrentTime(setRecapVal, 0)}>Set to current time</button>
-                        <label htmlFor="recapEnd">End of recap</label>
-                        <input
-                          name="recapEnd"
-                          type="number"
-                          min={recapVal[0]}
-                          max={document.getElementById("videoPlayerElement").duration}
-                          value={recapVal[1]}
-                          onChange={(e) => setRecapVal((curr) => [curr[0], e.target.value])}
-                        />
-                        <button onClick={() => setToCurrentTime(setRecapVal, 1)}>Set to current time</button>
-                      </>
-                    )}
-                    <label htmlFor="introCheck">Intro</label>
-                    <input name="introCheck" type="checkbox" checked={introChecked} onChange={(e) => setIntroChecked(e.target.checked)} />
-                    {introChecked && (
-                      <>
-                        <label htmlFor="introStart">Start of intro</label>
-                        <input
-                          name="introStart"
-                          type="number"
-                          min={0}
-                          max={introVal[1]}
-                          value={introVal[0]}
-                          onChange={(e) => setIntroVal((curr) => [e.target.value, curr[1]])}
-                        />
-                        <button onClick={() => setToCurrentTime(setIntroVal, 0)}>Set to current time</button>
-                        <label htmlFor="introEnd">End of intro</label>
-                        <input
-                          name="introEnd"
-                          type="number"
-                          min={introVal[0]}
-                          max={document.getElementById("videoPlayerElement").duration}
-                          value={introVal[1]}
-                          onChange={(e) => setIntroVal((curr) => [curr[0], e.target.value])}
-                        />
-                        <button onClick={() => setToCurrentTime(setIntroVal, 1)}>Set to current time</button>
-                      </>
-                    )}
-                    <label htmlFor="outroCheck">Outro</label>
-                    <input name="outroCheck" type="checkbox" checked={outroChecked} onChange={(e) => setOutroChecked(e.target.checked)} />
-                    {outroChecked && (
-                      <>
-                        <label htmlFor="outroStart">Start of outro</label>
-                        <input
-                          name="outroStart"
-                          type="number"
-                          min={0}
-                          max={outroVal[1]}
-                          value={outroVal[0]}
-                          onChange={(e) => setOutroVal((curr) => [e.target.value, curr[1]])}
-                        />
-                        <button onClick={() => setToCurrentTime(setOutroVal, 0)}>Set to current time</button>
-                        <label htmlFor="outroEnd">End of outro</label>
-                        <input
-                          name="outroEnd"
-                          type="number"
-                          min={outroVal[0]}
-                          max={document.getElementById("videoPlayerElement").duration}
-                          value={outroVal[1]}
-                          onChange={(e) => setOutroVal((curr) => [curr[0], e.target.value])}
-                        />
-                        <button onClick={() => setToCurrentTime(setOutroVal, 1)}>Set to current time</button>
-                      </>
-                    )}
-                    <label htmlFor="nextPreviewCheck">Next Preview</label>
-                    <input
-                      name="nextPreviewCheck"
-                      type="checkbox"
-                      checked={nextPreviewChecked}
-                      onChange={(e) => setNextPreviewChecked(e.target.checked)}
-                    />
-                    {nextPreviewChecked && (
-                      <>
-                        <label htmlFor="nextPreviewStart">Start of next preview</label>
-                        <input
-                          name="nextPreviewStart"
-                          type="number"
-                          min={0}
-                          max={nextPreviewVal[1]}
-                          value={nextPreviewVal[0]}
-                          onChange={(e) => setNextPreviewVal((curr) => [e.target.value, curr[1]])}
-                        />
-                        <button onClick={() => setToCurrentTime(setNextPreviewVal, 0)}>Set to current time</button>
-                        <label htmlFor="nextPreviewEnd">End of next preview</label>
-                        <input
-                          name="nextPreviewEnd"
-                          type="number"
-                          min={nextPreviewVal[0]}
-                          max={document.getElementById("videoPlayerElement").duration}
-                          value={nextPreviewVal[1]}
-                          onChange={(e) => setNextPreviewVal((curr) => [curr[0], e.target.value])}
-                        />
-                        <button onClick={() => setToCurrentTime(setNextPreviewVal, 1)}>Set to current time</button>
-                      </>
-                    )}
+                    <InputCon>
+                      <label htmlFor="visibility">Visibility</label>
+                      <select required={true} name="visibility" onChange={(e) => setVisibility(e.target.value)}>
+                        <option value="public">public</option>
+                        <option value="unlisted">unlisted</option>
+                        <option value="private">private</option>
+                      </select>
+                    </InputCon>
                   </>
                 )}
+                {(type === "episode" || type === "season") && (
+                  <>
+                    <InputCon>
+                      <label htmlFor="seriesSelect">Pick a Series</label>
+                      <select required={true} name="seriesSelect" onChange={(e) => setContentId(e.target.value)}>
+                        {usersSeries.map((series) => {
+                          return (
+                            <option
+                              key={series.contentId}
+                              value={series.contentId}
+                            >{`${series.title} - [${series.seasons.length}] seasons`}</option>
+                          );
+                        })}
+                      </select>
+                    </InputCon>
+                  </>
+                )}
+                {type === "episode" && contentId && (
+                  <>
+                    <InputCon>
+                      <label htmlFor="seasonSelect">Pick a Season</label>
+                      <select required={true} name="seasonSelect" onChange={(e) => setSeason(e.target.value)}>
+                        {usersSeries
+                          .find((series) => series.contentId === contentId)
+                          .seasons.map((season) => {
+                            return (
+                              <option key={season.season} value={season.season}>
+                                {season.title}
+                              </option>
+                            );
+                          })}
+                      </select>
+                    </InputCon>
+                  </>
+                )}
+                <>
+                  <label htmlFor="thumbnail">Select Thumbnail</label>
+                  <input required={true} type="file" name="thumbnail" accept="image/*" ref={thumbnailFile}></input>{" "}
+                </>
+                <button onClick={() => submit()}>Submit</button>
               </>
             )}
-            {true && (
-              <>
-                <label htmlFor="thumbnail">Select Thumbnail</label>
-                <input required={true} type="file" name="thumbnail" accept="image/*" ref={thumbnailFile}></input>{" "}
-              </>
-            )}
-            <button onClick={() => submit()}>Submit</button>
-          </>
-        )}
+          </RightContainer>
+        </FormContainer>
       </form>
-    </div>
+    </MainContainer>
   );
 }
 
