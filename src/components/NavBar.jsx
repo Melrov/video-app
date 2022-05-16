@@ -16,10 +16,13 @@ import Theme from "./Theme";
 import { clearUser } from "../redux/actions/user.actions";
 
 let activeStyle = {
+  color: "white",
   textDecoration: "underline",
+  textDecorationColor: "#2DE1FC",
 };
 let nonActiveStyle = {
   textDecoration: "none",
+  color: "white",
 };
 
 const List = styled.ul`
@@ -38,6 +41,13 @@ const Con = styled.div`
   margin: 0px;
   padding: 0px;
   justify-content: center;
+`;
+const NavTitle = styled.h2`
+  margin: 0px;
+  margin-left: 10px;
+  &:hover {
+    color: ${props => props.theme.colors.accent};
+  }
 `;
 
 function NavBar({ user, clearLoggedInUser }) {
@@ -75,13 +85,13 @@ function NavBar({ user, clearLoggedInUser }) {
           <List>
             <ListItem>
               <NavLink to="/" style={({ isActive }) => (isActive ? activeStyle : nonActiveStyle)}>
-                Home
+                <NavTitle>Home</NavTitle>
               </NavLink>
             </ListItem>
             <ListItem>
               {user && (
                 <NavLink to="/upload" style={({ isActive }) => (isActive ? activeStyle : nonActiveStyle)}>
-                  Upload
+                  <NavTitle>Upload</NavTitle>
                 </NavLink>
               )}
             </ListItem>
