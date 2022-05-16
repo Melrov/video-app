@@ -220,11 +220,11 @@ const VideoPlayer = ({
               </button>
             </div>
             <div className="actions-right">
-              <span className="icon">
+              <button className="icon">
                 <i className="material-icons settingsBtn" ref={settingsBtn} onClick={settingsBtnClick}>
                   settings
                 </i>
-              </span>
+              </button>
               <button className="icon">
                 <i className="material-icons fullscreen" ref={fullscreen} onClick={fullscreenClick}>
                   fullscreen
