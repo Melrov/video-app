@@ -23,7 +23,7 @@ function HomePage() {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, []);
 
   return (
     <div>
