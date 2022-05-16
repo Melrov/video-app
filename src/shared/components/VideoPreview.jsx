@@ -81,7 +81,7 @@ function VideoPreview({ uuid, duration, episodes, title, username, views, upload
               <span>{username}</span> <br />
             </InfoLine>
           )}
-          <InfoLine subtext={type === "series" ? true : false}>
+          <InfoLine subtext={true}>
             {views && <span>{views + " views "}</span>}
             {uploadDate && <span>{uploadDate + " "}</span>}
             {episodes && version !== "carousel" && <span>{episodes + " episodes"}</span>}
