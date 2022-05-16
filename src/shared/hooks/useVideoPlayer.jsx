@@ -124,7 +124,7 @@ const useVideoPlayer = (
   const input = useMemo(() => {
     return {
       change: (e) => {
-        const manualChange = Number(e.target.value);
+        const manualChange = parseInt(e.target.value);
         videoElement.current.currentTime = e.target.value;
         setPlayerState((curr) => {
           return { ...curr, progress: manualChange };
@@ -166,7 +166,7 @@ const useVideoPlayer = (
   //makes the bar input bar have color to current time
   useEffect(() => {
     if (inputRef) {
-      inputRef.current.style.backgroundSize = `${(playerState.progress / videoElement.current.duration) * 100}% 100%`;
+      inputRef.current.style.backgroundSize = `${playerState.progress ? (playerState.progress / videoElement.current.duration) * 100 : 0}% 100%`;
     }
   }, [playerState.progress, inputRef]);
 
