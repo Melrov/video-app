@@ -156,12 +156,12 @@ function NavBar({ user, clearLoggedInUser }) {
           <Avatar /> My account
         </MenuItem>
         <Divider /> */}
-          <MenuItem onClick={() => navigate(`/channel/${user}`)}>
+          {/* <MenuItem onClick={() => navigate(`/channel/${user}`)}>
             <ListItemIcon>
               <Settings fontSize="small" />
             </ListItemIcon>
             Settings
-          </MenuItem>
+          </MenuItem> */}
           <MenuItem onClick={() => logout()}>
             <ListItemIcon>
               <Logout fontSize="small" />
