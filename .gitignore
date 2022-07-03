@@ -13,6 +13,7 @@
 
 # misc
 /server/assets
+/server/assets-test
 .env
 .DS_Store
 .env

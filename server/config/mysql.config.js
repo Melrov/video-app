@@ -1,13 +1,14 @@
 const mysql = require("mysql");
 const util = require("util");
+const test = process.env.TEST
 
 const pool = mysql.createPool({
   connectionLimit: 10,
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
-  port: process.env.DB_PORT,
+  host: test ? process.env.TEST_DB_HOST: process.env.DB_HOST,
+  user: test ? process.env.TEST_DB_USER : process.env.DB_USER,
+  password: test ? process.env.TEST_DB_PASSWORD : process.env.DB_PASSWORD,
+  database: test ? process.env.TEST_DB_DATABASE : process.env.DB_DATABASE,
+  port: test ? process.env.TEST_DB_PORT : process.env.DB_PORT,
 });
 
 pool.getConnection((err, connection) => {
